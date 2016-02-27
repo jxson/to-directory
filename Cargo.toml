@@ -4,3 +4,4 @@ version = "1.0.0"
 authors = ["Jason Campbell <jason@artifact.sh>"]
 
 [dependencies]
+clap = "2.1.2"
