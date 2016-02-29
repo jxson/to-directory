@@ -20,7 +20,8 @@ fn main() {
 
     // Take the matches from clap and convert them into name, directory, and
     // action.
-    let operation = parse(program);
+    parse(program);
+
 }
 
 struct Operation {
@@ -31,13 +32,14 @@ struct Operation {
 fn parse(cli: clap::App) -> Operation {
     let matches = cli.get_matches();
 
-    if let Some(name) = matches.value_of("name") {
-        println!("A name was passed in: {}", name);
-    }
+    let name = match matches.value_of("name") {
+        Some(name) => { name.to_string() },
+        None => { "foo".to_string() },
+    };
 
     if let Some(directory) = matches.value_of("directory") {
         println!("A name was passed in: {}", directory);
     }
 
-    return Operation{ name: "foo".to_string(), directory: PathBuf::from(".")}
+    return Operation{ name: name, directory: PathBuf::from(".")}
 }
