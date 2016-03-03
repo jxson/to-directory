@@ -7,6 +7,7 @@ use to::cli::{Request};
 use clap::{App, Arg};
 use std::path::PathBuf;
 use std::env;
+use std::fs;
 
 fn main() {
     // Use the clap crate to handle argument parsing.
@@ -41,21 +42,22 @@ fn parse(cli: clap::App) -> ToResult<Request> {
         Err(err) => return Err(err),
     };
 
+    // Validate that the directory exists and is a directory.
+    // TODO: Move this into the resolve step.
+    if !is_valid_dir(&directory) {
+        panic!("invalid directory");
+    }
+
     let name = match matches.value_of("name") {
         Some(value) => value,
         // directory.file_stem().map(|stem| stem.to_str()).unwrap()
         None => "",
     };
 
-    // let pathame = .unwrap_or("");
-    // let directory = resolve(pathame);
-    // let basename = directory.file_stem().unwrap().to_str().unwrap();
-    // let name = matches.value_of("name").unwrap_or(basename);
-
     println!("directory: {:?}", directory);
     println!("name: {:?}", name);
 
-    let req = Request{ name: "foo".to_string(), directory: PathBuf::from(".")};
+    let req = Request{ name: name.to_string(), directory: directory };
 
     return Ok(req);
 }
@@ -64,7 +66,7 @@ fn resolve(pathname: &str) -> ToResult<PathBuf> {
     // TODO: Use a custom results tuple instead of panic!.
     let mut absolute = match env::current_dir() {
         Ok(value) => value,
-        Err(err) => return Err(err),
+        Err(err) => return Err(ToError::Io(err)),
     };
 
     // Don't default to "." since it will be a literal translation creating
@@ -74,4 +76,19 @@ fn resolve(pathname: &str) -> ToResult<PathBuf> {
     }
 
     return Ok(absolute);
+}
+
+fn is_valid_dir(directory: &PathBuf) -> bool {
+    let path = directory.clone();
+
+    let metadata = match fs::metadata(path) {
+        Ok(value) => value,
+        Err(_) => return false,
+    };
+
+    if metadata.is_dir() {
+        return true;
+    }
+
+    return false;
 }
