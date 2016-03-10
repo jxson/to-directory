@@ -33,6 +33,10 @@ fn main() {
             .help("List all bookmarks")
             .long("list")
             .short("l"),
+
+        Arg::with_name("last")
+            .help("Change current working directory to last")
+            .long("last"),
     ];
     let matches = App::new("to")
                     .about("Bookmark directories")

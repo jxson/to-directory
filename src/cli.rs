@@ -44,39 +44,36 @@ impl<'a, 'b, 'c> CLI<'a, 'b, 'c> {
 }
 
 pub fn parse_matches(matches: clap::ArgMatches) -> ToResult<Request> {
-    let (get, put, delete, list) = (matches.is_present("get"),
-                                    matches.is_present("put"),
-                                    matches.is_present("delete"),
-                                    matches.is_present("list"));
+    let (get, put, delete, list, last) = (matches.is_present("get"),
+                                          matches.is_present("put"),
+                                          matches.is_present("delete"),
+                                          matches.is_present("list"),
+                                          matches.is_present("last"));
 
-    let action = match (get, put, delete, list) {
-        (true, _, _, _) => Action::Get,
-        (_, true, _, _) => Action::Put,
-        (_, _, true, _) => Action::Delete,
-        (_, _, _, true) => Action::List,
+    let action = match (get, put, delete, list, last) {
+        (true, _, _, _, _) => Action::Get,
+        (_, true, _, _, _) => Action::Put,
+        (_, _, true, _, _) => Action::Delete,
+        (_, _, _, true, _) => Action::List,
+        (_, _, _, _, true) => Action::Last,
         _               => Action::ChangeDirectory,
     };
+
+    //     // to --save,--put # Save current dir as a bookmark
+    //     // to --save,--put foo # Save current directory as bookmark foo
+    //     // to --delete foo # Delete bookmark foo
+    //     // to --info foo # Show details of the bookmark foo
+    //     // to --list # List all the bookmarks
+    //     // to foo # Go to the foo bookmark
+    //     // reserve "-" so it can be used later.
+    //     // to - # go to the last bookmark you visited
+
 
     println!("action: {:?}", action);
     let req = Request::new("foo", &PathBuf::from("."));
     return Ok(req);
 }
 
-
-//     // // Create a group, make it required, and add the above arguments
-//     // .group(ArgGroup::with_name("action")
-//     //     .required(true)
-//     //     .args(&ACTIONS)
-//
-//
-//     // to --save,--put # Save current dir as a bookmark
-//     // to --save,--put foo # Save current directory as bookmark foo
-//     // to --delete foo # Delete bookmark foo
-//     // to --info foo # Show details of the bookmark foo
-//     // to --list # List all the bookmarks
-//     // to foo # Go to the foo bookmark
-//     // reserve "-" so it can be used later.
-//     // to - # go to the last bookmark you visited
 //
 //     // Take the matches from clap and convert them into name, directory, and
 //     // action.
