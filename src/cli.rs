@@ -6,35 +6,63 @@ use std::fmt;
 use std::env;
 use std::fs;
 
+#[derive(Debug)]
+pub enum Action {
+    Get,
+    Put,
+    Delete,
+    List,
+    Last,
+    ChangeDirectory,
+}
+
 pub struct CLI<'a, 'b, 'd> where 'a: 'b, 'd {
-    pub actions: [clap::Arg<'a, 'b>; 1],
-    pub matches: clap::ArgMatches<'d>
+    pub actions: [clap::Arg<'a, 'b>; 4],
+    pub matches: clap::ArgMatches<'d>,
 }
 
 impl<'a, 'b, 'c> CLI<'a, 'b, 'c> {
-    pub fn new<'d>(actions: [clap::Arg<'a, 'b>; 1], app: clap::App<'c, 'd>) -> Self {
-
+    pub fn new<'d>(actions: [clap::Arg<'a, 'b>; 4], app: clap::App<'c, 'd>) -> Self {
         let matches = app.get_matches();
 
-        println!("{:?}", matches);
+        println!("is_present delete: {:?}",  matches.is_present("delete"));
+        println!("matches.value_of(\"action\"): {:?}",  matches.value_of("action"));
 
-        return CLI{ actions: actions, matches: matches };
-    }
+        // let names = actions.iter().map(|a| a.name).collect::<Vec<_>>();
 
-    pub fn run(&self) -> ToResult<Request> {
-        let req = Request::new("foo", &PathBuf::from("."));
-        return Ok(req);
+        return CLI{ actions: actions, matches: matches};
     }
+    //
+    // pub fn run(&self) -> ToResult<Request> {
+    //     for i in self.actions.iter() {
+    //         println!("> {:?}", i.name);
+    //     }
+    //
+    //
+    //     return Ok(req);
+    // }
 }
 
-//     for i in ACTIONS.iter() {
-//         println!("> {}", i);
-//     }
+pub fn parse_matches(matches: clap::ArgMatches) -> ToResult<Request> {
+    let (get, put, delete, list) = (matches.is_present("get"),
+                                    matches.is_present("put"),
+                                    matches.is_present("delete"),
+                                    matches.is_present("list"));
 
-//     // .arg(Arg::with_name("save")
-//     //     .help("Saves bookmark")
-//     //     .long("save")
-//     //     .short("s"))
+    let action = match (get, put, delete, list) {
+        (true, _, _, _) => Action::Get,
+        (_, true, _, _) => Action::Put,
+        (_, _, true, _) => Action::Delete,
+        (_, _, _, true) => Action::List,
+        _               => Action::ChangeDirectory,
+    };
+
+    println!("action: {:?}", action);
+    let req = Request::new("foo", &PathBuf::from("."));
+    return Ok(req);
+}
+
+
 //     // // Create a group, make it required, and add the above arguments
 //     // .group(ArgGroup::with_name("action")
 //     //     .required(true)
@@ -154,19 +182,15 @@ impl<'a, 'b, 'c> CLI<'a, 'b, 'c> {
 //
 // // ["save", "delete", "info", "list"];
 
+#[derive(Debug)]
 pub struct Request {
     pub name: String,
     pub directory: PathBuf,
+    pub action: Action,
 }
 
 impl Request {
     fn new(name: &str, directory: &PathBuf) -> Request {
-        Request{ name: "foo".to_string(), directory: PathBuf::from(".")}
-    }
-}
-
-impl fmt::Debug for Request {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Request{{ name: {:?}, directory: {:?} }}", self.name, self.directory)
+        Request{ name: "foo".to_string(), directory: PathBuf::from("."), action: Action::Get}
     }
 }
