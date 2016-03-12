@@ -16,33 +16,6 @@ pub enum Action {
     ChangeDirectory,
 }
 
-pub struct CLI<'a, 'b, 'd> where 'a: 'b, 'd {
-    pub actions: [clap::Arg<'a, 'b>; 4],
-    pub matches: clap::ArgMatches<'d>,
-}
-
-impl<'a, 'b, 'c> CLI<'a, 'b, 'c> {
-    pub fn new<'d>(actions: [clap::Arg<'a, 'b>; 4], app: clap::App<'c, 'd>) -> Self {
-        let matches = app.get_matches();
-
-        println!("is_present delete: {:?}",  matches.is_present("delete"));
-        println!("matches.value_of(\"action\"): {:?}",  matches.value_of("action"));
-
-        // let names = actions.iter().map(|a| a.name).collect::<Vec<_>>();
-
-        return CLI{ actions: actions, matches: matches};
-    }
-    //
-    // pub fn run(&self) -> ToResult<Request> {
-    //     for i in self.actions.iter() {
-    //         println!("> {:?}", i.name);
-    //     }
-    //
-    //
-    //     return Ok(req);
-    // }
-}
-
 pub fn parse_matches(matches: clap::ArgMatches) -> ToResult<Request> {
     let (get, put, delete, list, last) = (matches.is_present("get"),
                                           matches.is_present("put"),
@@ -56,17 +29,17 @@ pub fn parse_matches(matches: clap::ArgMatches) -> ToResult<Request> {
         (_, _, true, _, _) => Action::Delete,
         (_, _, _, true, _) => Action::List,
         (_, _, _, _, true) => Action::Last,
-        _               => Action::ChangeDirectory,
+        _                  => Action::ChangeDirectory,
     };
 
-    //     // to --save,--put # Save current dir as a bookmark
-    //     // to --save,--put foo # Save current directory as bookmark foo
-    //     // to --delete foo # Delete bookmark foo
-    //     // to --info foo # Show details of the bookmark foo
-    //     // to --list # List all the bookmarks
-    //     // to foo # Go to the foo bookmark
-    //     // reserve "-" so it can be used later.
-    //     // to - # go to the last bookmark you visited
+    // to --save,--put # Save current dir as a bookmark
+    // to --save,--put foo # Save current directory as bookmark foo
+    // to --delete foo # Delete bookmark foo
+    // to --info foo # Show details of the bookmark foo
+    // to --list # List all the bookmarks
+    // to foo # Go to the foo bookmark
+    // reserve "-" so it can be used later.
+    // to - # go to the last bookmark you visited
 
 
     println!("action: {:?}", action);
@@ -74,17 +47,6 @@ pub fn parse_matches(matches: clap::ArgMatches) -> ToResult<Request> {
     return Ok(req);
 }
 
-//
-//     // Take the matches from clap and convert them into name, directory, and
-//     // action.
-//     let request = match parse(program) {
-//         Ok(value) => value,
-//         Err(err) => panic!(err),
-//     };
-//
-//
-// }
-//
 // fn parse(cli: clap::App) -> ToResult<Request> {
 //     let matches = cli.get_matches();
 //     let pathname = matches.value_of("directory").unwrap_or("");
