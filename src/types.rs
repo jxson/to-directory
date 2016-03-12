@@ -6,7 +6,6 @@ pub type ToResult<T> = Result<T, ToError>;
 #[derive(Debug)]
 pub enum ToError {
     Io(io::Error),
-
 }
 
 impl From<io::Error> for ToError {

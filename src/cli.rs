@@ -72,79 +72,30 @@ fn resolve(pathname: Option<&str>) -> ToResult<PathBuf> {
         absolute.push(pathname);
     }
 
-    return Ok(absolute);
+    // TODO: figure out a better way to deal with this moved value.
+    let resolved = absolute.clone();
+
+    match exists(absolute) {
+        Ok(value) => match value {
+            true => return Ok(resolved),
+            false => panic!("TODO: Does not exist error!"),
+        },
+        Err(err) => Err(err),
+    }
 }
 
+fn exists(directory: PathBuf) -> ToResult<bool> {
+    let metadata = match fs::metadata(directory) {
+        Ok(value) => value,
+        Err(err) => return Err(ToError::Io(err)),
+    };
 
-//     // Validate that the directory exists and is a directory.
-//     // TODO: Move this into the resolve step.
-//     if !is_valid_dir(&directory) {
-//         panic!("invalid directory");
-//     }
-//
-//     let name = match matches.value_of("name") {
-//         Some(value) => value,
-//         // directory.file_stem().map(|stem| stem.to_str()).unwrap()
-//         None => "",
-//     };
-//
-//     println!("directory: {:?}", directory);
-//     println!("name: {:?}", name);
-//
-//     // let mut action = "save";
-//     // // Increment the one requested (in a real program, we'd reset the lower numbers)
-//     // let (save, delete, info, list) = (matches.is_present("save"),
-//     //                              matches.is_present("delete"),
-//     //                              matches.is_present("info"),
-//     //                              matches.is_present("list"));
-//     //
-//     // match (save, delete, info, list) {
-//     //     (true, _, _, _) => action = "save",
-//     //     (_, true, _, _) => action = "delete",
-//     //     (_, _, true, _) => action = "info",
-//     //     (_, _, _, true) => action = "list",
-//     //     _            => unreachable!(),
-//     // };
-//     //
-//     // println!("action: {:?}", action);
-//
-//     let req = Request{ name: name.to_string(), directory: directory };
-//
-//     return Ok(req);
-// }
-//
-//
-// fn is_valid_dir(directory: &PathBuf) -> bool {
-//     let path = directory.clone();
-//
-//     let metadata = match fs::metadata(path) {
-//         Ok(value) => value,
-//         Err(_) => return false,
-//     };
-//
-//     if metadata.is_dir() {
-//         return true;
-//     }
-//
-//     return false;
-// }
-//
-//
-// // static NUMBERS: &'static [i32] = &'static [1, 2, 3, 4, 5];
-// // static C: [E; 3] = [E::V0, E::V1(0xDEADBEE), E::V0];
-// static ACTIONS: [Arg; 1] = [
-//     Arg::with_name("save")
-//         .help("Saves bookmark")
-//         .long("save")
-//         .short("s")
-// ];
-//
-// // .arg(Arg::with_name("delete")
-// //     .help("Delete bookmark")
-// //     .long("delete")
-// //     .short("d"))
-//
-// // ["save", "delete", "info", "list"];
+    if metadata.is_dir() {
+        return Ok(true);
+    }
+
+    return Ok(false);
+}
 
 #[derive(Debug)]
 pub struct Request {
