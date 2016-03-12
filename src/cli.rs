@@ -1,10 +1,11 @@
 extern crate clap;
 
-use types::ToResult;
+use types::{ToResult, ToError};
 use std::path::PathBuf;
 use std::fmt;
 use std::env;
 use std::fs;
+use std::option::Option;
 
 #[derive(Debug)]
 pub enum Action {
@@ -41,21 +42,40 @@ pub fn parse_matches(matches: clap::ArgMatches) -> ToResult<Request> {
     // reserve "-" so it can be used later.
     // to - # go to the last bookmark you visited
 
-
     println!("action: {:?}", action);
+
+    let directory = match resolve(matches.value_of("directory")) {
+        Ok(value) => value,
+        Err(err) => return Err(err),
+    };
+
+    println!("directory: {:?}", directory);
+
     let req = Request::new("foo", &PathBuf::from("."));
     return Ok(req);
 }
 
-// fn parse(cli: clap::App) -> ToResult<Request> {
-//     let matches = cli.get_matches();
-//     let pathname = matches.value_of("directory").unwrap_or("");
-//
-//     let directory = match resolve(pathname) {
-//         Ok(value) => value,
-//         Err(err) => return Err(err),
-//     };
-//
+fn resolve(pathname: Option<&str>) -> ToResult<PathBuf> {
+    let pathname = match pathname {
+        Some(value) => value,
+        None => "",
+    };
+
+    let mut absolute = match env::current_dir() {
+        Ok(value) => value,
+        Err(err) => return Err(ToError::Io(err)),
+    };
+
+    // Don't default to "." since it will be a literal translation creating
+    // dumb directories like "/foo/bar/."
+    if pathname != "." {
+        absolute.push(pathname);
+    }
+
+    return Ok(absolute);
+}
+
+
 //     // Validate that the directory exists and is a directory.
 //     // TODO: Move this into the resolve step.
 //     if !is_valid_dir(&directory) {
@@ -93,21 +113,6 @@ pub fn parse_matches(matches: clap::ArgMatches) -> ToResult<Request> {
 //     return Ok(req);
 // }
 //
-// fn resolve(pathname: &str) -> ToResult<PathBuf> {
-//     // TODO: Use a custom results tuple instead of panic!.
-//     let mut absolute = match env::current_dir() {
-//         Ok(value) => value,
-//         Err(err) => return Err(ToError::Io(err)),
-//     };
-//
-//     // Don't default to "." since it will be a literal translation creating
-//     // dumb directories like "/foo/bar/."
-//     if pathname != "." {
-//         absolute.push(pathname);
-//     }
-//
-//     return Ok(absolute);
-// }
 //
 // fn is_valid_dir(directory: &PathBuf) -> bool {
 //     let path = directory.clone();
