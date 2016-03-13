@@ -51,7 +51,21 @@ pub fn parse_matches(matches: clap::ArgMatches) -> ToResult<Request> {
 
     println!("directory: {:?}", directory);
 
-    let req = Request::new("foo", &PathBuf::from("."));
+    let dir = directory.clone();
+    let basedir = match dir.file_stem() {
+        Some(value) => value.to_str(),
+        None => panic!("TODO: I dont even"),
+    };
+
+    let name = matches
+        .value_of("name")
+        .unwrap_or(basedir.unwrap())
+        .to_string();
+
+    println!("basedir {:?}", basedir);
+    println!("name {:?}", name);
+
+    let req = Request::new(name, directory, action);
     return Ok(req);
 }
 
@@ -105,7 +119,7 @@ pub struct Request {
 }
 
 impl Request {
-    fn new(name: &str, directory: &PathBuf) -> Request {
-        Request{ name: "foo".to_string(), directory: PathBuf::from("."), action: Action::Get}
+    fn new(name: String, directory: PathBuf, action: Action) -> Request {
+        Request{ name: name, directory: directory, action: action }
     }
 }
