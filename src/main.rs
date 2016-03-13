@@ -57,4 +57,6 @@ fn main() {
     };
 
     println!("CLI Request: {:?}", request);
+
+    // NEXT: Store get, put, delete, list
 }
