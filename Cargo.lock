@@ -2,7 +2,10 @@
 name = "to"
 version = "1.0.0"
 dependencies = [
+ "bincode 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "chrono 0.2.20 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.18 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -11,9 +14,35 @@ version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "bincode"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "byteorder 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num 0.1.31 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 0.6.15 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "bitflags"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "byteorder"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "chrono"
+version = "0.2.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "num 0.1.31 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "time 0.1.34 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "clap"
@@ -27,12 +56,76 @@ dependencies = [
 ]
 
 [[package]]
+name = "kernel32-sys"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "winapi 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "libc"
+version = "0.2.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "num"
+version = "0.1.31"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.18 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "rand"
+version = "0.3.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libc 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "rustc-serialize"
+version = "0.3.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "serde"
+version = "0.6.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "num 0.1.31 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "strsim"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "time"
+version = "0.1.34"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "kernel32-sys 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "vec_map"
 version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "winapi"
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "winapi-build"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 

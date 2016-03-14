@@ -1,4 +1,7 @@
+use chrono::{DateTime, UTC};
+use std::fmt;
 use std::io;
+use std::path::PathBuf;
 
 pub type ToResult<T> = Result<T, ToError>;
 
@@ -11,5 +14,29 @@ pub enum ToError {
 impl From<io::Error> for ToError {
     fn from(err: io::Error) -> ToError {
         ToError::Io(err)
+    }
+}
+
+#[derive(RustcEncodable, RustcDecodable, PartialEq)]
+pub struct Bookmark {
+    pub name: String,
+    pub directory: PathBuf,
+    // pub created_at: DateTime<UTC>,
+    // pub updted_at: DateTime<UTC>,
+    // pub last_accessed_at: DateTime<UTC>,
+}
+
+impl fmt::Debug for Bookmark {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Bookmark{{ name: {:?}, directory: {:?} }}", self.name, self.directory)
+    }
+}
+
+impl Bookmark {
+    pub fn new(name: String, directory: PathBuf) -> Bookmark {
+        return Bookmark {
+            name: name,
+            directory: directory,
+        };
     }
 }
