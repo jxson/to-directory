@@ -68,8 +68,10 @@ fn main() {
         Some(value) => value,
         None => panic!("TODO: Unable to locate home directory."),
     };
+    let mut db = PathBuf::from(home);
+            db.push(".to");
 
-    let store = Store::new(home);
+    let store = Store::new(db);
     let result = match request.action {
         Action::Put => store.put(request.name, request.directory),
         _ => panic!("NOT IMPLEMENTED!"),

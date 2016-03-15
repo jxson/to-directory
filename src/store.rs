@@ -8,9 +8,6 @@ pub struct Store {
 
 impl Store {
     pub fn new(dir: PathBuf) -> Store {
-        let mut db = PathBuf::from(dir);
-                db.push(".to");
-
         return Store{ db: db };
     }
 
