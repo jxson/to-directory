@@ -1,4 +1,5 @@
 use chrono::{DateTime, UTC};
+use std::collections::BTreeMap;
 use std::fmt;
 use std::io;
 use std::path::PathBuf;
@@ -40,3 +41,5 @@ impl Bookmark {
         };
     }
 }
+
+pub type Bookmarks = BTreeMap<String, Bookmark>;

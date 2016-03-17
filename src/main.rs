@@ -4,11 +4,11 @@ extern crate to;
 
 use to::store::Store;
 use to::store;
+use to::dir;
 use to::cli::Action;
 use to::{ToResult, ToError, Bookmark};
 use clap::{App, Arg, ArgGroup};
 use std::path::PathBuf;
-use std::env;
 use std::fs;
 
 fn main() {
@@ -62,16 +62,12 @@ fn main() {
     println!("CLI Request: {:?}", request);
 
     // NEXT: Store get, put, delete, list
-
-    // Get the user's home directory.
-    let home = match env::home_dir() {
-        Some(value) => value,
-        None => panic!("TODO: Unable to locate home directory."),
+    let config = match dir::config() {
+        Ok(value) => value,
+        Err(err) => panic!(err),
     };
-    let mut db = PathBuf::from(home);
-            db.push(".to");
 
-    let store = Store::new(db);
+    let store = Store::new(config);
     let result = match request.action {
         Action::Put => store.put(request.name, request.directory),
         _ => panic!("NOT IMPLEMENTED!"),
