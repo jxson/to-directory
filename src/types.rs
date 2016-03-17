@@ -18,19 +18,13 @@ impl From<io::Error> for ToError {
     }
 }
 
-#[derive(RustcEncodable, RustcDecodable, PartialEq)]
+#[derive(Debug, RustcEncodable, RustcDecodable, PartialEq)]
 pub struct Bookmark {
     pub name: String,
     pub directory: PathBuf,
     // pub created_at: DateTime<UTC>,
     // pub updted_at: DateTime<UTC>,
     // pub last_accessed_at: DateTime<UTC>,
-}
-
-impl fmt::Debug for Bookmark {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Bookmark{{ name: {:?}, directory: {:?} }}", self.name, self.directory)
-    }
 }
 
 impl Bookmark {
