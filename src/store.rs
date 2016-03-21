@@ -6,17 +6,17 @@ use dir::{mkdirp};
 
 // TODO implement display
 pub struct Store {
-    db: PathBuf,
+    location: PathBuf,
     // bookmarks: Cell<Bookmarks>, // Maybe?
 }
 
 impl Store {
-    pub fn new(directory: PathBuf) -> Store {
-        let mut db = PathBuf::from(directory);
-                db.push("db.bin");
+    pub fn new(location: PathBuf) -> Store {
+        let mut location = PathBuf::from(location);
+                location.push("db.bin");
 
-        println!("db {:?}", db);
-        return Store{ db: db };
+        println!("location {:?}", location);
+        return Store{ location: location };
     }
 
     pub fn all(&self) -> ToResult<Bookmarks> {
@@ -49,12 +49,8 @@ impl Store {
         return Ok(());
     }
 
-    fn create(&self) -> ToResult<()> {
-        return Ok(());
-    }
-
     fn read(&self) -> ToResult<Bookmarks> {
-        let file = match bootstrap(&self.db) {
+        let file = match open(&self.location) {
             Ok(value) => value,
             Err(err) => return Err(err),
         };
@@ -71,33 +67,26 @@ impl Store {
     }
 }
 
-fn bootstrap(db: &PathBuf) -> ToResult<File> {
-    let directory = match db.parent() {
+fn open(location: &PathBuf) -> ToResult<File> {
+    let directory = match location.parent() {
         Some(value) => value,
-        None => panic!("db cannot be a idrectory."),
+        None => panic!("location cannot be a idrectory."),
     };
 
     if let Err(err) = mkdirp(directory) {
         return Err(err);
     }
 
-    match File::create(&db) {
+    match File::create(&location) {
         Ok(_) => {},
         Err(ref err) if err.kind() == ErrorKind::AlreadyExists => {},
         Err(err) => return Err(ToError::Io(err)),
     };
 
-    let file = match File::open(db) {
+    let file = match File::open(location) {
         Ok(value) => value,
         Err(err) => return Err(ToError::Io(err)),
     };
 
     return Ok(file);
-}
-
-fn open(file: PathBuf) -> ToResult<File> {
-    match File::open(file) {
-        Ok(value) => return Ok(value),
-        Err(err) => return Err(ToError::Io(err)),
-    }
 }
