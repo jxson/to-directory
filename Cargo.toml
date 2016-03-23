@@ -5,6 +5,6 @@ authors = ["Jason Campbell <jason@artifact.sh>"]
 
 [dependencies]
 clap = "2.1.2"
-rustc-serialize = "0.3.16"
-bincode = "0.4.0"
+rustc-serialize = "0.3.18"
+bincode = "0.5.1"
 chrono = { version = "0.2", features = [ "rustc-serialize" ] }
