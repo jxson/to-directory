@@ -100,7 +100,10 @@ fn open(location: &PathBuf) -> ToResult<File> {
     let file = match File::open(location) {
         Ok(value) => value,
         Err(ref err) if err.kind() == ErrorKind::NotFound => {
-            bootstrap(location);
+            match bootstrap(location) {
+                Ok(value) => return Ok(value),
+                Err(err) => return Err(err),
+            }
         },
         Err(err) => return Err(ToError::Io(err)),
     };
@@ -108,10 +111,9 @@ fn open(location: &PathBuf) -> ToResult<File> {
     return Ok(file);
 }
 
-fn bootstrap(location: &PathBuf) -> ToResult<()> {
+fn bootstrap(location: &PathBuf) -> ToResult<File> {
     let file = match File::create(&location) {
         Ok(value) => value,
-        // Err(ref err) if err.kind() == ErrorKind::AlreadyExists => {},
         Err(err) => return Err(ToError::Io(err)),
     };
 
@@ -122,4 +124,8 @@ fn bootstrap(location: &PathBuf) -> ToResult<()> {
         Err(err) => panic!("ERROR ECODING: {:?}", err),
     }
 
+    match File::open(location) {
+        Ok(value) => return Ok(value),
+        Err(err) => return Err(ToError::Io(err)),
+    };
 }
