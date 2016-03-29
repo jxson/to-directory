@@ -4,7 +4,7 @@ use std::fs::{File};
 use std::io::{BufReader, BufWriter, ErrorKind};
 use dir::{mkdirp};
 use bincode::SizeLimit;
-use bincode::rustc_serialize::{encode_into};
+use bincode::rustc_serialize::{encode, encode_into, decode_from};
 
 // TODO implement display
 pub struct Store {
@@ -57,32 +57,40 @@ impl Store {
             Err(err) => return Err(err),
         };
 
-        // let mut reader = BufReader::new(file);
-        //
-        //
-        // println!("reader {:?}", reader);
-        // println!("decoded {:?}", decoded);
-        //
-        let bookmarks = Bookmarks::new();
+        let mut reader = BufReader::new(file);
+        let bookmarks: Bookmarks = match decode_from(&mut reader, SizeLimit::Infinite) {
+            Ok(value) => value,
+            Err(err) => panic!("DECODING ERROR"),
+        };
+
+        println!("existing {:?}", bookmarks);
 
         return Ok(bookmarks);
     }
 
-            //
-            // let mut collection: BTreeMap<String, bookmark::Bookmark> = BTreeMap::new();
-            // let key = bm.name.clone();
-            // collection.insert(key, bm);
-            //
-            //
-            // let encoded: Vec<u8> = encode(&collection, SizeLimit::Infinite).unwrap();
-            //
-            // println!("encoded {:?}", encoded);
-            //
-            // let decoded: BTreeMap<String, bookmark::Bookmark> = decode(&encoded[..]).unwrap();
-            //
-            // println!("decoded {:?}", decoded["foo"]);
-
     fn write(&self, bookmarks: Bookmarks) -> ToResult<()> {
+        println!("Writing db to {:?}", self.location);
+        println!(" * bookmarks {:?}", bookmarks);
+
+        let file = match open(&self.location) {
+            Ok(value) => value,
+            Err(err) => return Err(err),
+        };
+
+        println!("file {:?}", file);
+
+        let bytes: Vec<u8> = match encode(&bookmarks, SizeLimit::Infinite) {
+            Ok(value) => value,
+            Err(err) => panic!(err),
+        };
+
+        println!("encoded bytes {:?}", bytes);
+
+        match file.write_all(&bytes) {
+            Ok(value) => return Ok(value),
+            Err(err) => panic!("Error writing encoded DB"),
+        }
+
         return Ok(());
     }
 }
@@ -111,7 +119,9 @@ fn open(location: &PathBuf) -> ToResult<File> {
     return Ok(file);
 }
 
+// TODO: open a new db without wrtiting to it first.
 fn bootstrap(location: &PathBuf) -> ToResult<File> {
+    println!("bootstrapping {:?}", location);
     let file = match File::create(&location) {
         Ok(value) => value,
         Err(err) => return Err(ToError::Io(err)),
