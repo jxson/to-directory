@@ -2,8 +2,7 @@
 extern crate clap;
 extern crate to;
 
-use to::store::Store;
-use to::store;
+use to::database::Database;
 use to::dir;
 use to::cli::Action;
 use to::{ToResult, ToError, Bookmark};
@@ -62,14 +61,20 @@ fn main() {
     println!("CLI Request: {:?}", request);
 
     // NEXT: Store get, put, delete, list
-    let config = match dir::config() {
+    let config_dir = match dir::config() {
         Ok(value) => value,
         Err(err) => panic!(err),
     };
 
-    let store = Store::new(config);
+    let store = match Database::open(config_dir) {
+        Ok(db) => { db },
+        Err(e) => { panic!("failed to open database: {:?}", e) }
+    };
+
+    println!("store {:?}", store);
+
     let result = match request.action {
-        Action::Put => store.put(request.name, request.directory),
+        Action::Put => store.put(request.name, &request.directory),
         _ => panic!("NOT IMPLEMENTED!"),
     };
 }

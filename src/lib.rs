@@ -5,7 +5,7 @@ extern crate rustc_serialize;
 
 pub mod cli;
 pub mod dir;
-pub mod store;
+pub mod database;
 pub mod types;
 
 pub use types::{
