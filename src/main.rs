@@ -66,15 +66,19 @@ fn main() {
         Err(err) => panic!(err),
     };
 
-    let store = match Database::open(config_dir) {
-        Ok(db) => { db },
-        Err(e) => { panic!("failed to open database: {:?}", e) }
+    let mut store = match Database::open(config_dir) {
+        Ok(db) => db,
+        Err(e) => panic!("failed to open database: {:?}", e),
     };
 
     println!("store {:?}", store);
-
     let result = match request.action {
-        Action::Put => store.put(request.name, &request.directory),
+        Action::Put => store.put(request.name, request.directory),
         _ => panic!("NOT IMPLEMENTED!"),
     };
+
+    match result {
+        Ok(_) => println!("success!"),
+        Err(err) => panic!(err),
+    }
 }

@@ -1,11 +1,12 @@
 use std::path::{ PathBuf };
 use types::{ ToResult, ToError, Bookmark, Bookmarks };
 use dir::{ mkdirp };
-use std::fs::{ File };
+use std::fs::{ File, OpenOptions };
 use std::io::{ BufReader, BufWriter, ErrorKind };
 use bincode::SizeLimit::Infinite;
 use bincode::rustc_serialize::{ encode_into, decode_from };
 use std::string::String;
+use std::cell::Cell;
 
 // use std::path::{PathBuf, Components};
 
@@ -13,6 +14,7 @@ use std::string::String;
 pub struct Database {
     location: PathBuf,
     // bookmarks: Cell<Bookmarks>,
+    bookmarks: Bookmarks,
 }
 
 //     pub fn all(&self) -> ToResult<Bookmarks> {
@@ -25,9 +27,10 @@ pub struct Database {
 //     }
 
 impl Database {
-    fn new(location: PathBuf) -> Database {
+    fn new(location: PathBuf, bookmarks: Bookmarks) -> Database {
         Database {
             location: location,
+            bookmarks: bookmarks,
         }
     }
 
@@ -61,99 +64,48 @@ impl Database {
             Err(err) => return Err(ToError::Io(err)),
         };
 
-        let db = Database::new(location);
+        let db = Database::new(location, bookmarks);
         return Ok(db);
     }
 
-    // // TODO: open a new db without wrtiting to it first.
-    // fn bootstrap(location: &PathBuf) -> ToResult<File> {
-    //     println!("bootstrapping {:?}", location);
-    //     let file = match File::create(&location) {
-    //         Ok(value) => value,
-    //         Err(err) => return Err(ToError::Io(err)),
-    //     };
-    //
-    //     let bookmarks = Bookmarks::new();
-    //     let mut writer = BufWriter::new(file);
-    //     match encode_into(&bookmarks, &mut writer, SizeLimit::Infinite) {
-    //         Ok(_) => println!("successful encode"),
-    //         Err(err) => panic!("ERROR ECODING: {:?}", err),
-    //     }
-    //
-    //     match File::open(location) {
-    //         Ok(value) => return Ok(value),
-    //         Err(err) => return Err(ToError::Io(err)),
-    //     };
-    // }
-
-    pub fn put(&self, key: String, value: &PathBuf) -> ToResult<()> {
+    pub fn put(&mut self, key: String, value: PathBuf) -> ToResult<()> {
         println!("db.put({:?}, {:?})", key, value);
         // Check that the db has been opened.
 
-        return Ok(());
+        let value = Bookmark::new(key.clone(), value);
+        self.bookmarks.insert(key, value);
+        println!("bookmarks {:?}", self.bookmarks);
+
+        match self.close() {
+            Ok(value) => return Ok(value),
+            Err(err) => panic!("Failed to close: {:?}", err),
+        };
     }
 
+    fn close(&self) -> ToResult<()> {
+        println!("CLOSING");
+        // let path = PathBuf::from(&self.location);
+        let mut options = OpenOptions::new();
+                options.write(true);
+        let file = match options.open(&self.location) {
+            Ok(file) => file,
+            // Does not exist, create it.
+            Err(err) => {
+                options.create(true);
+                try!(options.open(&self.location))
+            },
+        };
 
-    //         let mut collection = match self.all() {
-    //             Ok(value) => value,
-    //             Err(err) => panic!(err),
-    //         };
-    //
-    //         let key = name.clone();
-    //         let value = Bookmark::new(name, directory);
-    //         collection.insert(key, value);
-    //
-    //         println!("collection {:?}", collection);
-    //
-    //         if let Err(err) = self.write(collection) {
-    //             print!("Error on put");
-    //         }
-    //
-    //         return Ok(());
-    //     }
+        println!("file {:?}", file);
 
+        let mut writer = BufWriter::new(file);
+        match encode_into(&self.bookmarks, &mut writer, Infinite) {
+            Ok(_) => println!("successful encode"),
+            Err(err) => panic!("ERROR ECODING: {:?}", err),
+        }
+
+        println!("closed {:?}", self.location);
+
+        return Ok(());
+    }
 }
-
-
-//
-//
-//     fn read(&self) -> ToResult<Bookmarks> {
-//         let file = match open(&self.location) {
-//             Ok(value) => value,
-//             Err(err) => return Err(err),
-//         };
-//
-//         let mut reader = BufReader::new(file);
-//         let bookmarks: Bookmarks = match decode_from(&mut reader, SizeLimit::Infinite) {
-//             Ok(value) => value,
-//             Err(err) => panic!("DECODING ERROR"),
-//         };
-//
-//         println!("existing {:?}", bookmarks);
-//
-//         return Ok(bookmarks);
-//     }
-//
-//     fn write(&self, bookmarks: Bookmarks) -> ToResult<()> {
-//         println!("Writing db to {:?}", self.location);
-//         println!(" * bookmarks {:?}", bookmarks);
-//
-//         let file = match open(&self.location) {
-//             Ok(value) => value,
-//             Err(err) => return Err(err),
-//         };
-//
-//         println!("file {:?}", file);
-//
-//         let bytes: Vec<u8> = match encode(&bookmarks, SizeLimit::Infinite) {
-//             Ok(value) => value,
-//             Err(err) => panic!(err),
-//         };
-//
-//         println!("encoded bytes {:?}", bytes);
-//
-//         return Ok(());
-//     }
-// }
-//
-//
