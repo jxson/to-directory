@@ -82,6 +82,13 @@ impl Database {
         };
     }
 
+    pub fn get(&mut self, key: String) -> ToResult<&Bookmark> {
+        match self.bookmarks.get(&key) {
+            Some(value) => return Ok(value),
+            None => panic!("NOT FOUND"),
+        }
+    }
+
     fn close(&self) -> ToResult<()> {
         println!("CLOSING");
         // let path = PathBuf::from(&self.location);

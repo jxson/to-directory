@@ -74,11 +74,18 @@ fn main() {
     println!("store {:?}", store);
     let result = match request.action {
         Action::Put => store.put(request.name, request.directory),
+        Action::Get => match store.get(request.name) {
+            Ok(bookmark) => {
+                println!("bookmark {:?}", bookmark);
+                Ok(())
+            },
+            Err(err) => Err(err),
+        },
         _ => panic!("NOT IMPLEMENTED!"),
     };
 
     match result {
-        Ok(_) => println!("success!"),
+        Ok(value) => println!("success! {:?}", value),
         Err(err) => panic!(err),
     }
 }
