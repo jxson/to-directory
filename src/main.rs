@@ -5,10 +5,7 @@ extern crate to;
 use to::database::Database;
 use to::dir;
 use to::cli::Action;
-use to::{ToResult, ToError, Bookmark};
-use clap::{App, Arg, ArgGroup};
-use std::path::PathBuf;
-use std::fs;
+use clap::{App, Arg};
 
 fn main() {
     let version = crate_version!();
