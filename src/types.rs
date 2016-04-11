@@ -21,10 +21,9 @@ impl From<io::Error> for ToError {
 #[derive(Debug, RustcEncodable, RustcDecodable, PartialEq)]
 pub struct Bookmark {
     pub name: String,
-    pub directory: PathBuf,
-    // pub created_at: DateTime<UTC>,
-    // pub updted_at: DateTime<UTC>,
-    // pub last_accessed_at: DateTime<UTC>,
+    pub directory: PathBuf, /* pub created_at: DateTime<UTC>,
+                             * pub updted_at: DateTime<UTC>,
+                             * pub last_accessed_at: DateTime<UTC>, */
 }
 
 impl Bookmark {

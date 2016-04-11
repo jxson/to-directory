@@ -1,10 +1,10 @@
-use std::path::{ PathBuf };
-use types::{ ToResult, ToError, Bookmark, Bookmarks };
-use dir::{ mkdirp };
-use std::fs::{ File, OpenOptions };
-use std::io::{ BufReader, BufWriter, ErrorKind };
+use std::path::PathBuf;
+use types::{ToResult, ToError, Bookmark, Bookmarks};
+use dir::mkdirp;
+use std::fs::{File, OpenOptions};
+use std::io::{BufReader, BufWriter, ErrorKind};
 use bincode::SizeLimit::Infinite;
-use bincode::rustc_serialize::{ encode_into, decode_from };
+use bincode::rustc_serialize::{encode_into, decode_from};
 use std::string::String;
 use std::cell::Cell;
 
@@ -46,7 +46,7 @@ impl Database {
         }
 
         let mut location = PathBuf::from(directory);
-                location.push("db.bin");
+        location.push("db.bin");
 
         let bookmarks = match File::open(&location) {
             Ok(file) => {
@@ -57,10 +57,8 @@ impl Database {
                 };
 
                 bookmarks
-            },
-            Err(ref err) if err.kind() == ErrorKind::NotFound => {
-                Bookmarks::new()
-            },
+            }
+            Err(ref err) if err.kind() == ErrorKind::NotFound => Bookmarks::new(),
             Err(err) => return Err(ToError::Io(err)),
         };
 
@@ -93,14 +91,14 @@ impl Database {
         println!("CLOSING");
         // let path = PathBuf::from(&self.location);
         let mut options = OpenOptions::new();
-                options.write(true);
+        options.write(true);
         let file = match options.open(&self.location) {
             Ok(file) => file,
             // Does not exist, create it.
             Err(err) => {
                 options.create(true);
                 try!(options.open(&self.location))
-            },
+            }
         };
 
         println!("file {:?}", file);

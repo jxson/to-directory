@@ -30,7 +30,7 @@ pub fn parse_matches(matches: clap::ArgMatches) -> ToResult<Request> {
         (_, _, true, _, _) => Action::Delete,
         (_, _, _, true, _) => Action::List,
         (_, _, _, _, true) => Action::Last,
-        _                  => Action::ChangeDirectory,
+        _ => Action::ChangeDirectory,
     };
 
     // to --save,--put # Save current dir as a bookmark
@@ -57,10 +57,9 @@ pub fn parse_matches(matches: clap::ArgMatches) -> ToResult<Request> {
         None => panic!("TODO: I dont even"),
     };
 
-    let name = matches
-        .value_of("name")
-        .unwrap_or(basedir.unwrap())
-        .to_string();
+    let name = matches.value_of("name")
+                      .unwrap_or(basedir.unwrap())
+                      .to_string();
 
     println!("basedir {:?}", basedir);
     println!("name {:?}", name);
@@ -90,10 +89,12 @@ fn resolve(pathname: Option<&str>) -> ToResult<PathBuf> {
     let resolved = absolute.clone();
 
     match exists(absolute) {
-        Ok(value) => match value {
-            true => return Ok(resolved),
-            false => panic!("TODO: Does not exist error!"),
-        },
+        Ok(value) => {
+            match value {
+                true => return Ok(resolved),
+                false => panic!("TODO: Does not exist error!"),
+            }
+        }
         Err(err) => Err(err),
     }
 }
@@ -120,6 +121,10 @@ pub struct Request {
 
 impl Request {
     fn new(name: String, directory: PathBuf, action: Action) -> Request {
-        Request{ name: name, directory: directory, action: action }
+        Request {
+            name: name,
+            directory: directory,
+            action: action,
+        }
     }
 }

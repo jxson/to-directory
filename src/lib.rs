@@ -8,8 +8,4 @@ pub mod dir;
 pub mod database;
 pub mod types;
 
-pub use types::{
-    Bookmark,
-    ToError,
-    ToResult,
-};
+pub use types::{Bookmark, ToError, ToResult};
