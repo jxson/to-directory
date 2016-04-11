@@ -6,9 +6,6 @@ use std::io::{BufReader, BufWriter, ErrorKind};
 use bincode::SizeLimit::Infinite;
 use bincode::rustc_serialize::{encode_into, decode_from};
 use std::string::String;
-use std::cell::Cell;
-
-// use std::path::{PathBuf, Components};
 
 #[derive(Debug)]
 pub struct Database {

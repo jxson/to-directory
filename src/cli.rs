@@ -2,7 +2,6 @@ extern crate clap;
 
 use types::{ToResult, ToError};
 use std::path::PathBuf;
-use std::fmt;
 use std::env;
 use std::fs;
 use std::option::Option;
