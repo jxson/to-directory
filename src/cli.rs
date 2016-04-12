@@ -67,6 +67,14 @@ pub fn parse_matches(matches: clap::ArgMatches) -> ToResult<Request> {
     return Ok(req);
 }
 
+#[cfg(test)]
+mod test {
+    #[test]
+    fn test_example() {
+        assert!(true, true);
+    }
+}
+
 fn resolve(pathname: Option<&str>) -> ToResult<PathBuf> {
     let pathname = match pathname {
         Some(value) => value,
