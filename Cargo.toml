@@ -2,9 +2,15 @@
 name = "to"
 version = "1.0.0"
 authors = ["Jason Campbell <jason@artifact.sh>"]
+description = "[EXPERIMENTAL] A CLI utility for bookmarking directories with tab completion."
+documentation = "..."
+homepage = "..."
+repository = "..."
+readme = "README.md"
+keywords = []
+license = "ISC"
 
 [dependencies]
 clap = "2.1.2"
 rustc-serialize = "0.3.18"
 bincode = "0.5.1"
-chrono = { version = "0.2", features = [ "rustc-serialize" ] }
