@@ -1,26 +1,34 @@
 language: rust
 sudo: false
 rust:
-  - stable
-  - beta
-  - nightly
+- stable
+- beta
+- nightly
 matrix:
   allow_failures:
-    - rust: nightly
+  - rust: nightly
 cache:
-    apt: true
-    directories:
-        - target/debug/deps
-        - target/debug/build
+  apt: true
+  directories:
+  - target/debug/deps
+  - target/debug/build
 addons:
   apt:
     packages:
-      - libcurl4-openssl-dev
-      - libelf-dev
-      - libdw-dev
-after_success: |
-    [ $TRAVIS_RUST_VERSION = stable ] &&
-    wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
-    tar xzf master.tar.gz && mkdir kcov-master/build && cd kcov-master/build && cmake .. && make && make install DESTDIR=../tmp && cd ../.. &&
-    ls target/debug &&
-    ./kcov-master/tmp/usr/local/bin/kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo target/kcov target/debug/to-*
+    - libcurl4-openssl-dev
+    - libelf-dev
+    - libdw-dev
+after_success:
+  - |
+      [ $TRAVIS_RUST_VERSION = stable ] &&
+      wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
+      tar xzf master.tar.gz && mkdir kcov-master/build && cd kcov-master/build && cmake .. && make && make install DESTDIR=../tmp && cd ../.. &&
+      ls target/debug &&
+      ./kcov-master/tmp/usr/local/bin/kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo target/kcov target/debug/to-*
+  - |
+      [ "$TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ $TRAVIS_RUST_VERSION = stable ] semantic-rs
+
+env:
+  global:
+  - secure: ledWg6vsxLu2NlWlqot+vPlSWoAdhuKpzW8KPVh7aOkG2AKc/E/7u/ZcYJk5/gwz38gOk3XKovs4wUTOJXDO9/Vk2rhdYlMlf+wyrZ4i1GyM1xdZ+6Crv76B5DDoq+8Z9lde6WcOkDMa2g400t2TjbmWj05Jlt5wwNzuNDomr71lg6E24IDjkXaCdP+Xpcg3RtvNfANJI2GdWcg9qDyWN3DBIHuRDjSoWkRg6+2XORnjoHkHggW9Qgbc4DHnNzM89e+5n3+ivHBsMim1jxxzsKbzazfsJJsJTJl3lZvsQcZ9I1EZQVFOf6c48cj9sCiImDXxNzywCrKqiEvAD3h9+JHSMGlkCkc770CRI//ATmj0BDvcBnv2n+r1Q7ui0KFuAbmDSEnbrcpDQO77OD5lTdEwq+0xxRZx4vVyKY3Vz1CMqUPfXa65u8Jf+Zs03Rey2uvMz4i1gUWEBfXj2t6H9hQnWK1M1fAhCMkzLlqjwUY7b56li3Ve+PEmRgsf7XPvh+iHUWqmu+hvMU14px5zk4onnO066eqfFujqK/zhQ0OKfc5GdXh3x2V4Sm93X+t98wPjkBxAeHGgYezPCfQLth40N/ySkv3rphltbqw1dWi8FPYja58C2bugTYFGFVTJXgg7Sdvj7g7PnH2LcfjZZ+AwT1cIpVC/XO1oqMvr4vQ=
+  - secure: y7F6f5vzEcwe918hd90gku+jrG1E2fkkGh7xMzDvY2M0wE1T1+LDs1Pu8Et0TuEiukVNlREGpdtGbFXQevhiw/aohMBu4l1nuW6Kaj3mH1+RqlxgxGNqLHL02tLcbMJXcPYOZEbVRjC0LNNOMDsJ+TM3u/sPU3sueEJ0YPucFrN6W34q+lzYQXv7pQWA4NHUD9Q3w3vmBqxQzD7kzjl92BojTVgedI6m5xD7MIzxt1snNAZynlm0KnbYIot0mNBI1eTUDGZ4B2wchBxwEYDo7HRpJcJ2bq6GuZZNEciy/7F6Z1fCuIvMzehYTvHIBwkSTNb8yWAeCZkB1iNpzZfCPkQYym5caOwYcRbucyQIqmTrTWbF2QYcGIPSjNNqPkh+oNatGrK2qIngoMGS6ypId6H93j7CaUFTxKphSIvt5u4ezqFAAmDW1vkSXFJWfYcNNYNjd65jUtOuCILwyjUi3Mp31XcmYD++CxnuEftRKkj6RakpN4je49oUejpoKI65cJ8W8hUFFzsxUlqvcxdnXhJriYmxTZFSHZJ6E4aIj7YZ7320/2o9YDIZs59csUf4rvjOIyjWhIgDm1AnF7X1qUWXPxVPtRCHdPiFHi6vsbNQjPr2AdY7v79VjvNBV7YOtL5/USPt8qMoa+bvXlYYuvUW/6SokKLRxe4EdYa/Fjs=
