@@ -18,6 +18,7 @@ addons:
     - libcurl4-openssl-dev
     - libelf-dev
     - libdw-dev
+    - cmake
 before_script:
   - |
       cargo install --git https://github.com/semantic-rs/semantic-rs --debug &&
