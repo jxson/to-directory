@@ -14,14 +14,14 @@ cache:
   - target/debug/deps
   - target/debug/build
 addons:
+  sources:
+    - kalakris-cmake
   apt:
     packages:
     - libcurl4-openssl-dev
     - libelf-dev
     - libdw-dev
     - cmake
-  sources:
-    - kalakris-cmake
 before_script:
   - |
       cargo install --git https://github.com/semantic-rs/semantic-rs --debug &&
@@ -37,7 +37,7 @@ after_success:
       ls target/debug &&
       ./kcov-master/tmp/usr/local/bin/kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo target/kcov target/debug/to-*
   - |
-      [ "$TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ $TRAVIS_RUST_VERSION = stable ] semantic-rs
+      [ "$TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_RUST_VERSION" = "stable" ] && RUST_LOG=debug semantic-rs
 
 env:
   global:
