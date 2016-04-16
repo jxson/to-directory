@@ -18,6 +18,13 @@ addons:
     - libcurl4-openssl-dev
     - libelf-dev
     - libdw-dev
+before_script:
+  - |
+      cargo install --git https://github.com/semantic-rs/semantic-rs --debug &&
+      export PATH=$HOME/.cargo/bin:$PATH &&
+      export RUST_BACKTRACE=1 &&
+      git config --global user.name semantic-rs &&
+      git config --global user.email semantic@rs
 after_success:
   - |
       [ $TRAVIS_RUST_VERSION = stable ] &&
