@@ -20,6 +20,8 @@ addons:
     - libelf-dev
     - libdw-dev
     - cmake
+  sources:
+    - kalakris-cmake
 before_script:
   - |
       cargo install --git https://github.com/semantic-rs/semantic-rs --debug &&
