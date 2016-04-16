@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate bincode;
-extern crate chrono;
 extern crate rustc_serialize;
 
 pub mod cli;
