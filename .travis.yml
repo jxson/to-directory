@@ -28,7 +28,8 @@ before_script:
       export PATH=$HOME/.cargo/bin:$PATH &&
       export RUST_BACKTRACE=1 &&
       git config --global user.name semantic-rs &&
-      git config --global user.email semantic@rs
+      git config --global user.email semantic@rs &&
+      git pull origin master
 after_success:
   - |
       [ $TRAVIS_RUST_VERSION = stable ] &&
