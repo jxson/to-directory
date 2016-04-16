@@ -1,10 +1,15 @@
+mod types;
+mod dir;
+mod database;
+mod cli;
+
 #[macro_use]
 extern crate clap;
-extern crate to_directory;
+extern crate bincode;
+extern crate rustc_serialize;
 
-use to_directory::database::Database;
-use to_directory::dir;
-use to_directory::cli::Action;
+use database::Database;
+use cli::Action;
 use clap::{App, Arg};
 
 fn main() {
@@ -48,7 +53,7 @@ fn main() {
                       .args(&actions)
                       .get_matches();
 
-    let request = match to_directory::cli::parse_matches(matches) {
+    let request = match cli::parse_matches(matches) {
         Ok(value) => value,
         Err(err) => panic!(err),
     };

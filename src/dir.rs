@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 use std::env;
-use types::{ToResult};
+use types::ToResult;
 
 pub fn config() -> ToResult<PathBuf> {
     let mut directory = match env::home_dir() {

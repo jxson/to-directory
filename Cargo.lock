@@ -1,5 +1,5 @@
 [root]
-name = "to_directory"
+name = "to-directory"
 version = "2.0.1"
 dependencies = [
  "bincode 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
