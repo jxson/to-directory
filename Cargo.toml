@@ -1,14 +1,15 @@
 [package]
-name = "to"
+name = "to-directory"
 version = "2.0.0"
 authors = ["Jason Campbell <jason@artifact.sh>"]
 description = "[EXPERIMENTAL] A CLI utility for bookmarking directories with tab completion."
-documentation = "..."
-homepage = "..."
-repository = "..."
+homepage = "https://github.com/jxson/to-rs"
 readme = "README.md"
 keywords = []
 license = "ISC"
+
+[[bin]]
+name = "to"
 
 [dependencies]
 clap = "2.1.2"
