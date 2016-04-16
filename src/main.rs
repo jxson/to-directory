@@ -1,10 +1,10 @@
 #[macro_use]
 extern crate clap;
-extern crate to;
+extern crate to_directory;
 
-use to::database::Database;
-use to::dir;
-use to::cli::Action;
+use to_directory::database::Database;
+use to_directory::dir;
+use to_directory::cli::Action;
 use clap::{App, Arg};
 
 fn main() {
@@ -48,7 +48,7 @@ fn main() {
                       .args(&actions)
                       .get_matches();
 
-    let request = match to::cli::parse_matches(matches) {
+    let request = match to_directory::cli::parse_matches(matches) {
         Ok(value) => value,
         Err(err) => panic!(err),
     };
