@@ -1,6 +1,6 @@
 [package]
 name = "to-directory"
-version = "2.0.1"
+version = "2.0.2"
 authors = ["Jason Campbell <jason@artifact.sh>"]
 description = "[EXPERIMENTAL] A CLI utility for bookmarking directories with tab completion."
 homepage = "https://github.com/jxson/to-rs"
