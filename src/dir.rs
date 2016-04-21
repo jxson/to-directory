@@ -1,5 +1,6 @@
 use std::path::{Path, PathBuf};
 use std::env;
+
 use types::ToResult;
 
 pub fn config() -> ToResult<PathBuf> {
@@ -14,6 +15,8 @@ pub fn config() -> ToResult<PathBuf> {
 }
 
 pub fn mkdirp(directory: &Path) -> ToResult<()> {
+    let mut directory = PathBuf::from(directory);
+            directory.push(".to");
     return Ok(());
 }
 

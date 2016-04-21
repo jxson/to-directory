@@ -34,7 +34,7 @@ impl Database {
     pub fn open(directory: PathBuf) -> ToResult<Database> {
         println!("DB open");
 
-        if let Some(extension) = directory.extension() {
+        if let Some(_) = directory.extension() {
             panic!("path is required to be a directory");
         }
 
@@ -92,7 +92,7 @@ impl Database {
         let file = match options.open(&self.location) {
             Ok(file) => file,
             // Does not exist, create it.
-            Err(err) => {
+            Err(_) => {
                 options.create(true);
                 try!(options.open(&self.location))
             }
