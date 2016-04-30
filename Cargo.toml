@@ -12,6 +12,6 @@ license = "ISC"
 name = "to"
 
 [dependencies]
-clap = "2.1.2"
+clap = { version = "2.1.2", features = [ "yaml" ] }
 rustc-serialize = "0.3.18"
 bincode = "0.5.1"

@@ -1,0 +1,27 @@
+name: to
+# version: TODO(jxson): can this be auto versioned?
+author: Jason Campbell <jason@artifact.sh>
+about: Bookmark directories
+args:
+  - NAME:
+      help: Name of the bookamrk
+      index: 1
+  - DIRECTORY:
+      help: Path of the bookamrk
+      index: 2
+  - get:
+      help: Show bookmark information
+      long: info
+      short: i
+  - put:
+      help: Save bookmark
+      long: save
+      short: s
+  - delete:
+      help: Delete bookmark
+      long: delete
+      short: d
+  - list:
+      help: List all bookmarks
+      long: list
+      short: l
