@@ -15,3 +15,8 @@ name = "to"
 clap = { version = "2.1.2", features = [ "yaml" ] }
 rustc-serialize = "0.3.18"
 bincode = "0.5.1"
+log = "0.3.6"
+env_logger = "0.3.3"
+
+[dev-dependencies]
+env_logger = "0.3.3"

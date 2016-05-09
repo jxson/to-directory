@@ -1,9 +1,6 @@
 // use std::io::Error;
-
-use std::env;
-use std::env::ArgsOs;
-use clap;
-use clap::{App, Arg};
+use clap::{App, ArgMatches};
+extern crate env_logger;
 
 
 pub type ToResult<T> = Result<T, ToError>;
@@ -25,15 +22,23 @@ impl Request {
 }
 
 pub fn get_request() -> ToResult<Request> {
-    let args = env::args_os();
-    return get_request_from(args);
+    let yaml = load_yaml!("cli.yml");
+    let app = App::from_yaml(yaml);
+    let matches = app.get_matches();
 
+    return get(matches);
 }
 
-pub fn get_request_from(args: ArgsOs) -> ToResult<Request> {
+pub fn get_request_from(args: Vec<&str>) -> ToResult<Request> {
     let yaml = load_yaml!("cli.yml");
     let app = App::from_yaml(yaml);
     let matches = app.get_matches_from(args);
+
+    return get(matches);
+}
+
+fn get(matches: ArgMatches) -> ToResult<Request> {
+    info!("cli parsing matches: {:?}", matches);
 
     let request = Request::new();
     return Ok(request);
@@ -42,15 +47,18 @@ pub fn get_request_from(args: ArgsOs) -> ToResult<Request> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    extern crate env_logger;
 
     #[test]
     fn basic() {
+        let _ = env_logger::init();
         let request = get_request();
         assert!(request.is_ok());
     }
 
     #[test]
-    fn basic_from_vec() -> ToResult<Request> {
+    fn basic_from_vec() -> () {
+        let _ = env_logger::init();
         let args = vec!["foo", "bar"];
         let request = get_request_from(args);
         assert!(request.is_ok());
