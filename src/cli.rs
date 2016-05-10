@@ -1,7 +1,6 @@
 use clap::{App, ArgMatches};
 use std::path::{PathBuf};
 
-use log;
 use dir;
 use error::{ToResult};
 
@@ -82,8 +81,8 @@ mod tests {
 
     #[test]
     fn basic() {
-        let request = get_request();
-        assert!(request.is_ok());
+        let result = get_request();
+        assert!(result.is_ok());
     }
 
     #[test]
