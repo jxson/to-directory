@@ -1,4 +1,5 @@
 use clap::{App, ArgMatches};
+use std::path::{PathBuf};
 use log;
 
 extern crate env_logger;
@@ -22,14 +23,18 @@ impl From<log::SetLoggerError> for ToError {
 
 #[derive(Debug)]
 pub struct Request {
-    // pub name: String,
-    // pub directory: PathBuf,
+    pub name: String,
+    pub directory: PathBuf,
     pub action: Action,
 }
 
 impl Request {
-    fn new() -> Request {
-        Request { action: Action::Put }
+    fn new(action: Action) -> Request {
+        Request {
+            name: String::from("foo"),
+            directory: PathBuf::from("bar"),
+            action: action,
+        }
     }
 }
 
@@ -51,25 +56,20 @@ pub fn get_request() -> ToResult<Request> {
     return get(matches);
 }
 
-pub fn get_request_from(args: Vec<&str>) -> ToResult<Request> {
-    let yaml = load_yaml!("cli.yml");
-    let app = App::from_yaml(yaml);
-    let matches = app.get_matches_from(args);
-
-    return get(matches);
-}
-
-fn get(matches: ArgMatches) -> ToResult<Request> {
+pub fn get(matches: ArgMatches) -> ToResult<Request> {
     info!("building request from clap::{:?}", matches);
 
-    let request = Request::new();
+    let request = Request::new(Action::ChangeDirectory);
     return Ok(request);
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     extern crate env_logger;
+    extern crate clap;
+
+    use super::*;
+    use std::path::{PathBuf};
 
     fn run(mut args: Vec<&str>) -> Request {
         let logger_result = env_logger::init();
@@ -77,7 +77,11 @@ mod tests {
 
         args.insert(0, "to");
 
-        let result = get_request_from(args);
+        let yaml = load_yaml!("cli.yml");
+        let app = clap::App::from_yaml(yaml);
+        let matches = app.get_matches_from(args);
+
+        let result = get(matches);
         assert!(result.is_ok());
 
         return result.unwrap();
@@ -90,12 +94,12 @@ mod tests {
     }
 
     #[test]
-    fn basic_from_vec() -> () {
-        let args = vec!["foo", "bar"];
+    fn to_name() -> () {
+        let args = vec!["foo"];
         let request = run(args);
 
-        // assert_eq!(request.name, "foo");
-        // assert_eq!(request.directory, "bar");
-        assert_eq!(request.action, Action::Put);
+        assert_eq!(request.action, Action::ChangeDirectory);
+        assert_eq!(request.name, "foo");
+        assert_eq!(request.directory, PathBuf::from("bar"));
     }
 }
