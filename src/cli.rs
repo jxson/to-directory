@@ -14,10 +14,10 @@ pub struct Request {
 }
 
 impl Request {
-    fn new(action: Action) -> Request {
+    fn new(name: &str, directory: PathBuf, action: Action) -> Request {
         Request {
-            name: String::from("foo"),
-            directory: PathBuf::from("bar"),
+            name: String::from(name),
+            directory: directory,
             action: action,
         }
     }
@@ -51,7 +51,8 @@ pub fn get(matches: ArgMatches) -> ToResult<Request> {
 
     let directory = try!(dir::resolve(pathname));
 
-    let request = Request::new(Action::ChangeDirectory);
+    let request = Request::new("foo", directory, Action::ChangeDirectory);
+
     return Ok(request);
 }
 
@@ -61,11 +62,14 @@ mod tests {
     extern crate clap;
 
     use super::*;
+    use std::env;
     use std::path::{PathBuf};
 
     fn run(mut args: Vec<&str>) -> Request {
-        let logger_result = env_logger::init();
-        assert!(logger_result.is_ok());
+        // Logger might fail if it is already initialized.
+        // let logger_result = env_logger::init();
+        // assert!(logger_result.is_ok());
+        let _ = env_logger::init();
 
         args.insert(0, "to");
 
@@ -73,10 +77,8 @@ mod tests {
         let app = clap::App::from_yaml(yaml);
         let matches = app.get_matches_from(args);
 
-        let result = get(matches);
-        assert!(result.is_ok());
-
-        return result.unwrap();
+        let request = get(matches).expect("should not fail");
+        return request;
     }
 
     #[test]
@@ -86,12 +88,13 @@ mod tests {
     }
 
     #[test]
-    fn to_name() -> () {
+    fn to_name() {
+        let cwd = env::current_dir().expect("should not fail");
         let args = vec!["foo"];
         let request = run(args);
 
         assert_eq!(request.action, Action::ChangeDirectory);
         assert_eq!(request.name, "foo");
-        assert_eq!(request.directory, PathBuf::from("bar"));
+        assert_eq!(request.directory, cwd);
     }
 }
