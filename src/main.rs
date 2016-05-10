@@ -5,6 +5,8 @@ extern crate log;
 extern crate env_logger;
 
 mod cli;
+mod dir;
+mod error;
 
 fn main() {
     // TODO: Add a match here and have a nice error message.

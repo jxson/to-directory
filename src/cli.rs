@@ -1,25 +1,11 @@
 use clap::{App, ArgMatches};
 use std::path::{PathBuf};
+
 use log;
+use dir;
+use error::{ToResult};
 
 extern crate env_logger;
-
-
-pub type ToResult<T> = Result<T, ToError>;
-
-#[derive(Debug)]
-pub enum ToError {
-    Log(log::SetLoggerError),
-}
-
-// TODO: add custom displays for these errors.
-// * SEE: https://jadpole.github.io/rust/many-error-types
-// * SEE: http://lucumr.pocoo.org/2014/11/6/error-handling-in-rust/
-impl From<log::SetLoggerError> for ToError {
-    fn from(err: log::SetLoggerError) -> ToError {
-        ToError::Log(err)
-    }
-}
 
 #[derive(Debug)]
 pub struct Request {
@@ -58,6 +44,13 @@ pub fn get_request() -> ToResult<Request> {
 
 pub fn get(matches: ArgMatches) -> ToResult<Request> {
     info!("building request from clap::{:?}", matches);
+
+    let pathname = match matches.value_of("directory") {
+        Some(value) => value,
+        None => "",
+    };
+
+    let directory = try!(dir::resolve(pathname));
 
     let request = Request::new(Action::ChangeDirectory);
     return Ok(request);
