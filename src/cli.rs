@@ -11,15 +11,45 @@ pub struct Request {
     pub name: String,
     pub directory: PathBuf,
     pub action: Action,
+    pub verbose: bool,
 }
 
 impl Request {
-    fn new(name: &str, directory: PathBuf, action: Action) -> Request {
+    fn new(name: &str, directory: PathBuf, action: Action, verbose: bool) -> Request {
         Request {
             name: String::from(name),
             directory: directory,
             action: action,
+            verbose: verbose,
         }
+    }
+
+    pub fn get() -> ToResult<Request> {
+        let yaml = load_yaml!("cli.yml");
+        let app = App::from_yaml(yaml);
+        let matches = app.get_matches();
+
+        return Request::from(matches);
+    }
+
+    pub fn from(matches: ArgMatches) -> ToResult<Request> {
+        info!("Building CLI request");
+
+        let pathname = matches.value_of("DIRECTORY").unwrap_or("");
+        let directory = try!(dir::resolve(pathname));
+
+        let basename = dir::basename(&directory).expect("TODO: handle this case");
+        let name = matches.value_of("NAME").unwrap_or(basename.as_str());
+
+        let action = Action::from(&matches);
+        let verbose = match matches.value_of("verbose").unwrap_or("false") {
+            "true" => true,
+            _ => false,
+        };
+
+        let request = Request::new(name, directory, action, verbose);
+
+        return Ok(request);
     }
 }
 
@@ -56,30 +86,6 @@ impl Action {
     }
 }
 
-pub fn get_request() -> ToResult<Request> {
-    let yaml = load_yaml!("cli.yml");
-    let app = App::from_yaml(yaml);
-    let matches = app.get_matches();
-
-    return get(matches);
-}
-
-pub fn get(matches: ArgMatches) -> ToResult<Request> {
-    info!("Building CLI request");
-
-    let pathname = matches.value_of("DIRECTORY").unwrap_or("");
-    let directory = try!(dir::resolve(pathname));
-
-    let basename = dir::basename(&directory).expect("TODO: handle this case");
-    let name = matches.value_of("NAME").unwrap_or(basename.as_str());
-
-    let action = Action::from(&matches);
-
-    let request = Request::new(name, directory, action);
-
-    return Ok(request);
-}
-
 #[cfg(test)]
 mod tests {
     extern crate env_logger;
@@ -100,13 +106,13 @@ mod tests {
         let app = clap::App::from_yaml(yaml);
         let matches = app.get_matches_from(args);
 
-        let request = get(matches).expect("should not fail");
+        let request = Request::from(matches).expect("should not fail");
         return request;
     }
 
     #[test]
     fn basic() {
-        let result = get_request();
+        let result = Request::get();
         assert!(result.is_ok());
     }
 

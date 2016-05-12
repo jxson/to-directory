@@ -12,7 +12,7 @@ fn main() {
     // TODO: Add a match here and have a nice error message.
     env_logger::init().unwrap();
 
-    let request = match cli::get_request() {
+    let request = match cli::Request::get() {
         Ok(value) => value,
         Err(err) => panic!(err),
     };

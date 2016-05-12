@@ -25,3 +25,7 @@ args:
       help: List all bookmarks
       long: list
       short: l
+  - verbose:
+      help: Verbose log output
+      long: verbose
+      short: v
