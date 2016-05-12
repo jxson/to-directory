@@ -13,34 +13,15 @@ pub fn resolve(pathname: &str) -> ToResult<PathBuf> {
 
 pub fn basename(path: &PathBuf) -> ToResult<String> {
     if let Some(stem) = path.file_stem() {
-        let value = stem.to_os_string();
+        let os_string = stem.to_os_string();
 
-        return match value.into_string() {
-            Ok(s) => Ok(s),
+        return match os_string.into_string() {
+            Ok(string) => Ok(string),
             Err(_) => Ok(String::from("")),
         };
     }
 
     return Ok(String::from(""));
-
-
-    // return None;
-    // fn basename<'a>(path: &'a PathBuf) -> Option<String>{
-
-    // return match path.file_stem() {
-    //     // Everything is fine until it is converted to_str which consumes the value confusing the compiler.
-    //     Some(value) => Some("foo"),
-    //     None => Some(""),
-    // };
-
-    // let d = directory.clone();
-    // let option = match d.file_stem() {
-    //     // Everything is fine until it is converted to_str which consumes the value confusing the compiler.
-    //     Some(value) => value,
-    //     None => panic!("TODO: handle this case."),
-    // };
-    //
-    // let basename = option.clone().to_str().unwrap();
 }
 
 
