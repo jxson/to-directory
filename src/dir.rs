@@ -11,11 +11,45 @@ pub fn resolve(pathname: &str) -> ToResult<PathBuf> {
     return Ok(canonical);
 }
 
+pub fn basename(path: &PathBuf) -> ToResult<String> {
+    if let Some(stem) = path.file_stem() {
+        let value = stem.to_os_string();
+
+        return match value.into_string() {
+            Ok(s) => Ok(s),
+            Err(_) => Ok(String::from("")),
+        };
+    }
+
+    return Ok(String::from(""));
+
+
+    // return None;
+    // fn basename<'a>(path: &'a PathBuf) -> Option<String>{
+
+    // return match path.file_stem() {
+    //     // Everything is fine until it is converted to_str which consumes the value confusing the compiler.
+    //     Some(value) => Some("foo"),
+    //     None => Some(""),
+    // };
+
+    // let d = directory.clone();
+    // let option = match d.file_stem() {
+    //     // Everything is fine until it is converted to_str which consumes the value confusing the compiler.
+    //     Some(value) => value,
+    //     None => panic!("TODO: handle this case."),
+    // };
+    //
+    // let basename = option.clone().to_str().unwrap();
+}
+
+
 #[cfg(test)]
 mod tests {
     extern crate env_logger;
 
     use std::env;
+    use std::path::{PathBuf};
     use super::*;
 
     #[test]
@@ -52,5 +86,14 @@ mod tests {
                 expected.push("src");
 
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_basename() {
+        let _ = env_logger::init();
+
+        let pathname = PathBuf::from("/foo/bar");
+        let basename = basename(&pathname).expect("should not fail");
+        assert_eq!(basename, String::from("bar"));
     }
 }

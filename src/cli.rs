@@ -27,8 +27,8 @@ impl Request {
 pub enum Action {
     Get,
     Put,
-    Delete,
     List,
+    Delete,
     Last,
     ChangeDirectory,
 }
@@ -42,16 +42,17 @@ pub fn get_request() -> ToResult<Request> {
 }
 
 pub fn get(matches: ArgMatches) -> ToResult<Request> {
-    info!("building request from clap::{:?}", matches);
+    info!("Building CLI request");
 
-    let pathname = match matches.value_of("directory") {
+    let pathname = match matches.value_of("DIRECTORY") {
         Some(value) => value,
         None => "",
     };
 
     let directory = try!(dir::resolve(pathname));
-
-    let request = Request::new("foo", directory, Action::ChangeDirectory);
+    let basename = dir::basename(&directory).expect("TODO: handle this case");
+    let name = matches.value_of("NAME").unwrap_or(basename.as_str());
+    let request = Request::new(name, directory, Action::ChangeDirectory);
 
     return Ok(request);
 }
