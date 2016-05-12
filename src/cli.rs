@@ -33,6 +33,29 @@ pub enum Action {
     ChangeDirectory,
 }
 
+impl Action {
+    pub fn from(matches: &ArgMatches) -> Action {
+        let (get, put, list, delete, last) = (
+            matches.is_present("get"),
+            matches.is_present("put"),
+            matches.is_present("list"),
+            matches.is_present("delete"),
+            matches.value_of("NAME") == Some("-"),
+        );
+
+        let action = match (get, put, list, delete, last) {
+            (true, _, _, _, _) => Action::Get,
+            (_, true, _, _, _) => Action::Put,
+            (_, _, true, _, _) => Action::List,
+            (_, _, _, true, _) => Action::Delete,
+            (_, _, _, _, true) => Action::Last,
+            _ => Action::ChangeDirectory,
+        };
+
+        return action;
+    }
+}
+
 pub fn get_request() -> ToResult<Request> {
     let yaml = load_yaml!("cli.yml");
     let app = App::from_yaml(yaml);
@@ -44,15 +67,15 @@ pub fn get_request() -> ToResult<Request> {
 pub fn get(matches: ArgMatches) -> ToResult<Request> {
     info!("Building CLI request");
 
-    let pathname = match matches.value_of("DIRECTORY") {
-        Some(value) => value,
-        None => "",
-    };
-
+    let pathname = matches.value_of("DIRECTORY").unwrap_or("");
     let directory = try!(dir::resolve(pathname));
+
     let basename = dir::basename(&directory).expect("TODO: handle this case");
     let name = matches.value_of("NAME").unwrap_or(basename.as_str());
-    let request = Request::new(name, directory, Action::ChangeDirectory);
+
+    let action = Action::from(&matches);
+
+    let request = Request::new(name, directory, action);
 
     return Ok(request);
 }
@@ -64,7 +87,6 @@ mod tests {
 
     use super::*;
     use std::env;
-    use std::path::{PathBuf};
 
     fn run(mut args: Vec<&str>) -> Request {
         // Logger might fail if it is already initialized.
@@ -89,7 +111,7 @@ mod tests {
     }
 
     #[test]
-    fn to_name() {
+    fn test_name() {
         let cwd = env::current_dir().expect("should not fail");
         let args = vec!["foo"];
         let request = run(args);
@@ -98,4 +120,53 @@ mod tests {
         assert_eq!(request.name, "foo");
         assert_eq!(request.directory, cwd);
     }
+
+    #[test]
+    fn no_flags() {
+        let request = run(vec![]);
+        assert_eq!(request.action, Action::ChangeDirectory);
+    }
+
+    #[test]
+    fn flag_info() {
+        let request = run(vec!["--info"]);
+        assert_eq!(request.action, Action::Get);
+
+        let request = run(vec!["-i"]);
+        assert_eq!(request.action, Action::Get);
+    }
+
+    #[test]
+    fn flag_save() {
+        let request = run(vec!["--save"]);
+        assert_eq!(request.action, Action::Put);
+
+        let request = run(vec!["-s"]);
+        assert_eq!(request.action, Action::Put);
+    }
+
+    #[test]
+    fn flag_list() {
+        let request = run(vec!["--list"]);
+        assert_eq!(request.action, Action::List);
+
+        let request = run(vec!["-l"]);
+        assert_eq!(request.action, Action::List);
+    }
+
+    #[test]
+    fn flag_delete() {
+        let request = run(vec!["--delete"]);
+        assert_eq!(request.action, Action::Delete);
+
+        let request = run(vec!["-d"]);
+        assert_eq!(request.action, Action::Delete);
+    }
+
+    #[test]
+    fn last() {
+        let request = run(vec!["-"]);
+        assert_eq!(request.action, Action::Last);
+    }
+
 }
