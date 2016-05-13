@@ -33,7 +33,6 @@ impl Request {
     }
 
     pub fn from(matches: ArgMatches) -> ToResult<Request> {
-        info!("Building CLI request");
 
         let pathname = matches.value_of("DIRECTORY").unwrap_or("");
         let directory = try!(dir::resolve(pathname));
@@ -42,9 +41,9 @@ impl Request {
         let name = matches.value_of("NAME").unwrap_or(basename.as_str());
 
         let action = Action::from(&matches);
-        let verbose = match matches.value_of("verbose").unwrap_or("false") {
-            "true" => true,
-            _ => false,
+        let verbose = match matches.occurrences_of("verbose") {
+            0 => false,
+            _ => true,
         };
 
         let request = Request::new(name, directory, action, verbose);
@@ -170,9 +169,20 @@ mod tests {
     }
 
     #[test]
+    fn flag_verbose() {
+        let request = run(vec![]);
+        assert_eq!(request.verbose, false);
+
+        let request = run(vec!["--verbose"]);
+        assert_eq!(request.verbose, true);
+
+        let request = run(vec!["-v"]);
+        assert_eq!(request.verbose, true);
+    }
+
+    #[test]
     fn last() {
         let request = run(vec!["-"]);
         assert_eq!(request.action, Action::Last);
     }
-
 }
