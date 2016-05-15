@@ -18,4 +18,6 @@ fn main() {
 
     logger::init(request.verbose);
     debug!("Logger works!");
+
+    debug!("request: {:?}", request);
 }
