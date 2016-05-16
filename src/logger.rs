@@ -12,7 +12,7 @@ pub fn __log(string: String) {
     println!("  to => {}", string);
 }
 
-macro_rules! debug {
+macro_rules! log {
     ($string:expr) => ({
         if logger::__verbose() {
             logger::__log($string.to_string());
