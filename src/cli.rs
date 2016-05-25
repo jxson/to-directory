@@ -26,7 +26,7 @@ impl Request {
 
     pub fn get() -> ToResult<Request> {
         let yaml = load_yaml!("cli.yml");
-        let app = App::from_yaml(yaml);
+        let app = App::from_yaml(yaml).version(crate_version!());
         let matches = app.get_matches();
 
         return Request::from(matches);
