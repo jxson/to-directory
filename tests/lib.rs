@@ -17,12 +17,19 @@ fn run(args: Vec<&str>) -> NiceOutput {
     let mut command = Command::new(binary);
             command.args(&args);
     let output = command.output().unwrap();
+    let stdout = trim(output.stdout);
+    let stderr = trim(output.stderr);
 
     return NiceOutput {
         status: output.status.code().unwrap(),
-        stdout: String::from_utf8(output.stdout).unwrap().trim(),
-        stderr: String::from_utf8(output.stderr).unwrap().trim(),
+        stdout: stdout,
+        stderr: stderr,
     };
+}
+
+fn trim(output: Vec<u8>) -> String {
+    let string = String::from_utf8(output).unwrap();
+    return String::from(string.trim());
 }
 
 #[test]
