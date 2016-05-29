@@ -33,13 +33,19 @@ fn trim(output: Vec<u8>) -> String {
 }
 
 #[test]
-fn smoke_test() {
+fn help_long() {
+    let result = run(vec!["--help"]);
+    assert_eq!(result.status, 0);
+}
+
+#[test]
+fn help_short() {
     let result = run(vec!["-h"]);
     assert_eq!(result.status, 0);
 }
 
 #[test]
-fn version_test_long() {
+fn version_long() {
     let result = run(vec!["--version"]);
     let version = env!("CARGO_PKG_VERSION");
     let expected = format!("to {}", version);
@@ -48,7 +54,7 @@ fn version_test_long() {
 }
 
 #[test]
-fn version_test_short() {
+fn version_short() {
     let result = run(vec!["-V"]);
     let version = env!("CARGO_PKG_VERSION");
     let expected = format!("to {}", version);
