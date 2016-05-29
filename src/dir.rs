@@ -24,6 +24,17 @@ pub fn basename(path: &PathBuf) -> ToResult<String> {
     return Ok(String::from(""));
 }
 
+pub fn config() -> ToResult<PathBuf> {
+    let mut directory = match env::home_dir() {
+        Some(value) => value,
+        None => panic!("TODO: Custom error - unable to locate home directory."),
+    };
+
+    directory.push(".to");
+
+    return Ok(directory);
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -34,9 +45,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn relative() {
-        let _ = env_logger::init();
-
+    fn resolve_relative() {
         let actual = resolve("src").expect("should not fail");
         let mut expected = env::current_dir().expect("should not fail");
                 expected.push("src");
@@ -47,9 +56,7 @@ mod tests {
     }
 
     #[test]
-    fn dot() {
-        let _ = env_logger::init();
-
+    fn resolve_dot() {
         let actual = resolve(".").expect("should not fail");
         let expected = env::current_dir().expect("should not fail");
 
@@ -57,9 +64,7 @@ mod tests {
     }
 
     #[test]
-    fn dot_dot() {
-        let _ = env_logger::init();
-
+    fn resolve_dot_dot() {
         let actual = resolve("../to-directory/src").expect("should not fail");
         let mut expected = env::current_dir().expect("should not fail");
                 expected.pop();
@@ -70,11 +75,10 @@ mod tests {
     }
 
     #[test]
-    fn test_basename() {
-        let _ = env_logger::init();
-
+    fn basename_absolute() {
         let pathname = PathBuf::from("/foo/bar");
         let basename = basename(&pathname).expect("should not fail");
+
         assert_eq!(basename, String::from("bar"));
     }
 }

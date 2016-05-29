@@ -51,6 +51,7 @@ fn version_long() {
     let expected = format!("to {}", version);
 
     assert_eq!(result.stdout, expected);
+    assert_eq!(result.status, 0);
 }
 
 #[test]
@@ -60,4 +61,5 @@ fn version_short() {
     let expected = format!("to {}", version);
 
     assert_eq!(result.stdout, expected);
+    assert_eq!(result.status, 0);
 }
