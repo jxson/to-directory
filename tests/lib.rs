@@ -39,8 +39,17 @@ fn smoke_test() {
 }
 
 #[test]
-fn version_test() {
+fn version_test_long() {
     let result = run(vec!["--version"]);
+    let version = env!("CARGO_PKG_VERSION");
+    let expected = format!("to {}", version);
+
+    assert_eq!(result.stdout, expected);
+}
+
+#[test]
+fn version_test_short() {
+    let result = run(vec!["-V"]);
     let version = env!("CARGO_PKG_VERSION");
     let expected = format!("to {}", version);
 
