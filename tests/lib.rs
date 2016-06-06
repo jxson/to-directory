@@ -33,45 +33,43 @@ fn trim(output: Vec<u8>) -> String {
 }
 
 #[test]
-fn help_long() {
+fn help() {
     let result = run(vec!["--help"]);
     assert_eq!(result.status, 0);
-}
 
-#[test]
-fn help_short() {
     let result = run(vec!["-h"]);
     assert_eq!(result.status, 0);
 }
 
+
 #[test]
-fn version_long() {
+fn version() {
+    let version = env!("CARGO_PKG_VERSION");
+    let expected = format!("to {}", version);
+
     let result = run(vec!["--version"]);
-    let version = env!("CARGO_PKG_VERSION");
-    let expected = format!("to {}", version);
-
     assert_eq!(result.stdout, expected);
     assert_eq!(result.status, 0);
-}
 
-#[test]
-fn version_short() {
     let result = run(vec!["-V"]);
-    let version = env!("CARGO_PKG_VERSION");
-    let expected = format!("to {}", version);
-
     assert_eq!(result.stdout, expected);
     assert_eq!(result.status, 0);
 }
 
 #[test]
-fn save_long() {
+fn save() {
     let result = run(vec!["--save"]);
     assert_eq!(result.status, 0);
+
+    let result = run(vec!["-s"]);
+    assert_eq!(result.status, 0);
 }
 
 #[test]
-fn save_short() {
-    let result = run(vec!["-s"]);
+fn info() {
+    let result = run(vec!["--info"]);
+    assert_eq!(result.status, 0);
+
+    let result = run(vec!["-i"]);
     assert_eq!(result.status, 0);
 }
