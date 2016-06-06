@@ -1,6 +1,8 @@
-use error::{ToResult};
+use error::{ToResult, ToError};
 use std::env;
 use std::path::{PathBuf};
+use std::fs;
+use std::io;
 
 pub fn resolve(pathname: &str) -> ToResult<PathBuf> {
     let mut absolute = try!(env::current_dir());
@@ -32,7 +34,23 @@ pub fn config() -> ToResult<PathBuf> {
 
     directory.push(".to");
 
+    if let Err(err) = mkdirp(&directory) {
+        return Err(err);
+    }
+
     return Ok(directory);
+}
+
+fn mkdirp(directory: &PathBuf) -> ToResult<()> {
+    match fs::create_dir(&directory) {
+        Ok(_) => return Ok(()),
+        Err(ref err) if exists(err) => return Ok(()),
+        Err(err) => Err(ToError::Io(err)),
+    }
+}
+
+fn exists(err: &io::Error) -> bool {
+    return err.kind() == io::ErrorKind::AlreadyExists;
 }
 
 
