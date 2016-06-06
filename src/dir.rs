@@ -36,6 +36,12 @@ pub fn config() -> ToResult<PathBuf> {
 }
 
 
+pub fn db() -> ToResult<PathBuf> {
+    let mut pathname = try!(config());
+            pathname.push("db");
+    return Ok(pathname);
+}
+
 #[cfg(test)]
 mod tests {
     extern crate env_logger;
