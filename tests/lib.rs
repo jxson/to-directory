@@ -69,3 +69,9 @@ fn save_long() {
     let result = run(vec!["--save"]);
     assert_eq!(result.status, 0);
 }
+
+#[test]
+fn save_short() {
+    let result = run(vec!["-s"]);
+    assert_eq!(result.status, 0);
+}

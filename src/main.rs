@@ -16,6 +16,7 @@ mod logger;
 
 use database::{Database};
 use cli::{Action};
+use error::{ToResult};
 
 fn main() {
     let request = match cli::Request::get() {
@@ -44,6 +45,7 @@ fn main() {
     println!("store {:?}", store);
     let result = match request.action {
         Action::Put => store.put(request.name, request.directory),
+        Action::Get => show(store, request.name),
         _ => panic!("NOT IMPLEMENTED!"),
     };
 
@@ -51,4 +53,10 @@ fn main() {
         Ok(value) => println!("success! {:?}", value),
         Err(err) => panic!(err),
     }
+}
+
+fn show(mut store: Database, key: String) -> ToResult<()> {
+    let bookmark = try!(store.get(key));
+    println!("info: {:?}", bookmark);
+    return Ok(());
 }

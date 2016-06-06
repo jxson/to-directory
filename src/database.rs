@@ -41,6 +41,7 @@ impl Database {
     }
 
     // TODO: add a check to verify the db is open.
+    // TODO: add check to verify value is a valid directory.
     pub fn put(&mut self, key: String, value: PathBuf) -> ToResult<()> {
         let value = Bookmark::new(key.clone(), value);
         self.bookmarks.insert(key, value);
@@ -49,6 +50,13 @@ impl Database {
             Ok(value) => return Ok(value),
             Err(err) => panic!("Failed to close: {:?}", err),
         };
+    }
+
+    pub fn get(&mut self, key: String) -> ToResult<&Bookmark> {
+        match self.bookmarks.get(&key) {
+            Some(value) => return Ok(value),
+            None => panic!("NOT FOUND"),
+        }
     }
 
     fn close(&self) -> ToResult<()> {
