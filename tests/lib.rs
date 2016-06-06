@@ -32,6 +32,8 @@ fn trim(output: Vec<u8>) -> String {
     return String::from(string.trim());
 }
 
+// TODO: add setup and tear down for test runs.
+
 #[test]
 fn help() {
     let result = run(vec!["--help"]);
