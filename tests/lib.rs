@@ -63,3 +63,9 @@ fn version_short() {
     assert_eq!(result.stdout, expected);
     assert_eq!(result.status, 0);
 }
+
+#[test]
+fn save_long() {
+    let result = run(vec!["--save"]);
+    assert_eq!(result.status, 0);
+}
