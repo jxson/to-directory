@@ -1,4 +1,5 @@
 use error::{ToResult, ToError};
+use std::cell::Cell;
 use std::path::PathBuf;
 use std::collections::BTreeMap;
 use std::fs::{File, OpenOptions};
@@ -42,9 +43,40 @@ impl Database {
 
     // TODO: add a check to verify the db is open.
     // TODO: add check to verify value is a valid directory.
-    pub fn put(&mut self, key: String, value: PathBuf) -> ToResult<()> {
-        let value = Bookmark::new(key.clone(), value);
-        self.bookmarks.insert(key, value);
+    pub fn put(mut self, key: String, value: PathBuf) -> ToResult<()> {
+        println!("put: {:?}: {:?}", key, value);
+
+        // let bookmark = match self.get(key) {
+        //     Some(bookmark) => {
+        //         Bookmark::new(key.clone(), value);
+        //     },
+        //     None => {
+        //         Bookmark::new(key.clone(), value);
+        //     }
+        // };
+
+        // update a key, guarding against the key possibly not being set
+        // let stat = player_stats.entry("attack").or_insert(100);
+        // *stat += random_stat_buff();
+
+        let mut bookmark =  match self.get(&key) {
+            Some(bookmark) => bookmark.to_owned(),
+            None => {
+                panic!("omg");
+            },
+        };
+
+
+
+        println!("bookmark: {:?}", bookmark);
+
+        bookmark.directory = value;
+
+        println!("bookmark: {:?}", bookmark);
+
+
+        // let bookmark = Bookmark::new(key.clone(), value);
+
 
         match self.close() {
             Ok(value) => return Ok(value),
@@ -52,14 +84,12 @@ impl Database {
         };
     }
 
-    pub fn get(&mut self, key: String) -> ToResult<&Bookmark> {
-        match self.bookmarks.get(&key) {
-            Some(value) => return Ok(value),
-            None => panic!("NOT FOUND"),
-        }
+    pub fn get(&self, key: &String) -> Option<&Bookmark> {
+        return self.bookmarks.get(key);
     }
 
     fn close(&self) -> ToResult<()> {
+        // return Ok(());
         let mut options = OpenOptions::new();
                 options.write(true);
 
@@ -82,17 +112,25 @@ impl Database {
     }
 }
 
-#[derive(Debug, RustcEncodable, RustcDecodable, PartialEq)]
+#[derive(Copy, Debug, RustcEncodable, RustcDecodable, PartialEq)]
 pub struct Bookmark {
     pub name: String,
-    pub directory: PathBuf,
+    pub directory: Cell<PathBuf>,
+    created_at: i64,
+    updted_at: i64,
+    accessed_at: Option<i64>,
 }
 
 impl Bookmark {
     pub fn new(name: String, directory: PathBuf) -> Bookmark {
+        let now = 0;
+
         return Bookmark {
             name: name,
-            directory: directory,
+            directory: Cell::new(directory),
+            created_at: now,
+            updted_at: now,
+            accessed_at: None,
         };
     }
 }
