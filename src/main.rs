@@ -56,8 +56,7 @@ fn main() {
     }
 }
 
-fn show(mut store: Database, key: String) -> ToResult<()> {
-    // let bookmark = try!(store.get(key));
+fn show(store: Database, key: String) -> ToResult<()> {
     if let Some(bookmark) = store.get(&key) {
         println!("info: {:?}", bookmark);
     } else {
