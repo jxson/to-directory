@@ -2,6 +2,7 @@
 extern crate clap;
 #[macro_use]
 extern crate log;
+extern crate time;
 extern crate env_logger;
 extern crate bincode;
 #[macro_use]

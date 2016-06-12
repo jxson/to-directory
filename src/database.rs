@@ -1,5 +1,5 @@
+use time;
 use error::{ToResult, ToError};
-use std::cell::Cell;
 use std::path::PathBuf;
 use std::collections::BTreeMap;
 use std::fs::{File, OpenOptions};
@@ -44,11 +44,10 @@ impl Database {
     // TODO: add a check to verify the db is open.
     // TODO: add check to verify value is a valid directory.
     pub fn put(&mut self, key: String, value: PathBuf) -> ToResult<()> {
-        println!("put: {:?}: {:?}", key, value);
-
         if self.bookmarks.contains_key(&key) {
             if let Some(bookmark) = self.bookmarks.get_mut(&key) {
                 bookmark.directory = value;
+                bookmark.updated_at = now();
             }
         } else {
             let bookmark = Bookmark::new(key.clone(), value);
@@ -66,13 +65,11 @@ impl Database {
     }
 
     fn close(&self) -> ToResult<()> {
-        // return Ok(());
         let mut options = OpenOptions::new();
                 options.write(true);
 
         let file = match options.open(&self.location) {
             Ok(file) => file,
-            // Does not exist, create it.
             Err(_) => {
                 options.create(true);
                 try!(options.open(&self.location))
@@ -94,20 +91,22 @@ pub struct Bookmark {
     pub name: String,
     pub directory: PathBuf,
     created_at: i64,
-    updted_at: i64,
+    pub updated_at: i64,
     accessed_at: Option<i64>,
 }
 
 impl Bookmark {
     pub fn new(name: String, directory: PathBuf) -> Bookmark {
-        let now = 0;
-
         return Bookmark {
             name: name,
             directory: directory,
-            created_at: now,
-            updted_at: now,
+            created_at: now(),
+            updated_at: now(),
             accessed_at: None,
         };
     }
+}
+
+fn now() -> i64 {
+    return time::now_utc().to_timespec().sec;
 }
