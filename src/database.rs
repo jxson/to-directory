@@ -64,6 +64,18 @@ impl Database {
         return self.bookmarks.get(key);
     }
 
+    pub fn delete(&mut self, key: String) -> ToResult<()> {
+        match self.bookmarks.remove(&key) {
+            None => panic!("nothing to delete."),
+            _ => {},
+        }
+
+        match self.close() {
+            Ok(value) => return Ok(value),
+            Err(err) => panic!("Failed to close: {:?}", err),
+        };
+    }
+
     fn close(&self) -> ToResult<()> {
         let mut options = OpenOptions::new();
                 options.write(true);

@@ -45,8 +45,9 @@ fn main() {
 
     println!("store {:?}", store);
     let result = match request.action {
-        Action::Put => store.put(request.name, request.directory),
         Action::Get => show(store, request.name),
+        Action::Put => store.put(request.name, request.directory),
+        Action::Delete => store.delete(request.name),
         _ => panic!("NOT IMPLEMENTED!"),
     };
 
