@@ -33,7 +33,7 @@ impl Database {
                 };
 
                 bookmarks
-            }
+            },
             Err(ref err) if err.kind() == ErrorKind::NotFound => Bookmarks::new(),
             Err(err) => return Err(ToError::Io(err)),
         };
@@ -43,40 +43,17 @@ impl Database {
 
     // TODO: add a check to verify the db is open.
     // TODO: add check to verify value is a valid directory.
-    pub fn put(mut self, key: String, value: PathBuf) -> ToResult<()> {
+    pub fn put(&mut self, key: String, value: PathBuf) -> ToResult<()> {
         println!("put: {:?}: {:?}", key, value);
 
-        // let bookmark = match self.get(key) {
-        //     Some(bookmark) => {
-        //         Bookmark::new(key.clone(), value);
-        //     },
-        //     None => {
-        //         Bookmark::new(key.clone(), value);
-        //     }
-        // };
-
-        // update a key, guarding against the key possibly not being set
-        // let stat = player_stats.entry("attack").or_insert(100);
-        // *stat += random_stat_buff();
-
-        let mut bookmark =  match self.get(&key) {
-            Some(bookmark) => bookmark.to_owned(),
-            None => {
-                panic!("omg");
-            },
-        };
-
-
-
-        println!("bookmark: {:?}", bookmark);
-
-        bookmark.directory = value;
-
-        println!("bookmark: {:?}", bookmark);
-
-
-        // let bookmark = Bookmark::new(key.clone(), value);
-
+        if self.bookmarks.contains_key(&key) {
+            if let Some(bookmark) = self.bookmarks.get_mut(&key) {
+                bookmark.directory = value;
+            }
+        } else {
+            let bookmark = Bookmark::new(key.clone(), value);
+            self.bookmarks.insert(key, bookmark);
+        }
 
         match self.close() {
             Ok(value) => return Ok(value),
@@ -112,10 +89,10 @@ impl Database {
     }
 }
 
-#[derive(Copy, Debug, RustcEncodable, RustcDecodable, PartialEq)]
+#[derive(Debug, RustcEncodable, RustcDecodable, PartialEq)]
 pub struct Bookmark {
     pub name: String,
-    pub directory: Cell<PathBuf>,
+    pub directory: PathBuf,
     created_at: i64,
     updted_at: i64,
     accessed_at: Option<i64>,
@@ -127,7 +104,7 @@ impl Bookmark {
 
         return Bookmark {
             name: name,
-            directory: Cell::new(directory),
+            directory: directory,
             created_at: now,
             updted_at: now,
             accessed_at: None,
