@@ -48,6 +48,7 @@ fn main() {
         Action::Get => show(store, request.name),
         Action::Put => store.put(request.name, request.directory),
         Action::Delete => store.delete(request.name),
+        Action::List => list(store),
         _ => panic!("NOT IMPLEMENTED!"),
     };
 
@@ -62,6 +63,14 @@ fn show(store: Database, key: String) -> ToResult<()> {
         println!("info: {:?}", bookmark);
     } else {
         panic!("NOT FOUND");
+    }
+
+    return Ok(());
+}
+
+fn list(store: Database) -> ToResult<()> {
+    for (key, bookmark) in store.all() {
+        println!("list: {}: {:?}", key, bookmark);
     }
 
     return Ok(());

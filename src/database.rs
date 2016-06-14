@@ -2,6 +2,7 @@ use time;
 use error::{ToResult, ToError};
 use std::path::PathBuf;
 use std::collections::BTreeMap;
+use std::collections::btree_map::Iter;
 use std::fs::{File, OpenOptions};
 use std::io::{BufReader, BufWriter, ErrorKind};
 use bincode::SizeLimit::Infinite;
@@ -74,6 +75,10 @@ impl Database {
             Ok(value) => return Ok(value),
             Err(err) => panic!("Failed to close: {:?}", err),
         };
+    }
+
+    pub fn all<'a>(&'a self) -> Iter<'a, String, Bookmark> {
+        return self.bookmarks.iter();
     }
 
     fn close(&self) -> ToResult<()> {
