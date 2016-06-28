@@ -62,8 +62,6 @@ pub fn db() -> ToResult<PathBuf> {
 
 #[cfg(test)]
 mod tests {
-    extern crate env_logger;
-
     use std::env;
     use std::path::{PathBuf};
     use super::*;

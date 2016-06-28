@@ -8,6 +8,7 @@ pub struct NiceOutput {
     pub stderr: String,
 }
 
+// TODO(jxson): use a db in a tmp dir for each run.
 fn run(args: Vec<&str>) -> NiceOutput {
     let mut directory = env::current_exe().unwrap();
             directory.pop(); // chop off exe name but leave "debug"
@@ -75,3 +76,9 @@ fn info() {
     let result = run(vec!["-i"]);
     assert_eq!(result.status, 0);
 }
+
+// to -d # should fail, requires <NAME>.
+
+// to # should fail with help message.
+// to -d foo # succeeds if <NAME=foo> exists, otherwise fails.
+// to -i # succeeds if <NAME> exists, otherwise fails.

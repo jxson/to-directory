@@ -13,3 +13,11 @@ CARGO_OPTS =
 PHONY: build
 build:
 	$(CARGO) $(CARGO_OPTS) build
+
+PHONY: install
+install:
+	$(CARGO) $(CARGO_OPTS) build --release
+
+PHONY: test
+test:
+	$(CARGO) $(CARGO_OPTS) test

@@ -1,9 +1,7 @@
 #[macro_use]
 extern crate clap;
 #[macro_use]
-extern crate log;
 extern crate time;
-extern crate env_logger;
 extern crate bincode;
 #[macro_use]
 extern crate rustc_serialize;
@@ -43,19 +41,29 @@ fn main() {
 
     log!("store: {:?}", store);
 
-    println!("store {:?}", store);
     let result = match request.action {
         Action::Get => show(store, request.name),
         Action::Put => store.put(request.name, request.directory),
         Action::Delete => store.delete(request.name),
         Action::List => list(store),
-        _ => panic!("NOT IMPLEMENTED!"),
+        Action::ChangeDirectory => cd(store, request),
+        _ => panic!("'{:?}' NOT IMPLEMENTED!", request.action),
     };
 
     match result {
         Ok(value) => println!("success! {:?}", value),
         Err(err) => panic!(err),
     }
+}
+
+fn cd(store: Database, request: cli::Request) -> ToResult<()> {
+    if let Some(bookmark) = store.get(&request.name) {
+        print!("{}", bookmark.directory.to_string_lossy());
+    } else {
+        panic!("NOT FOUND");
+    }
+
+    return Ok(());
 }
 
 fn show(store: Database, key: String) -> ToResult<()> {
@@ -73,5 +81,10 @@ fn list(store: Database) -> ToResult<()> {
         println!("list: {}: {:?}", key, bookmark);
     }
 
+    return Ok(());
+}
+
+fn help(request: cli::Request) -> ToResult<()> {
+    println!("help: {:?}", request);
     return Ok(());
 }

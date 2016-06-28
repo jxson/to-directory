@@ -12,12 +12,7 @@ license = "ISC"
 name = "to"
 
 [dependencies]
-clap = { version = "2.1.2", features = [ "yaml" ] }
+clap = { version = "2.6.0", features = [ "yaml" ] }
 rustc-serialize = "0.3.18"
 bincode = "0.5.1"
-log = "0.3.6"
-env_logger = "0.3.3"
-time = "0.1"
-
-[dev-dependencies]
-env_logger = "0.3.3"
+time = "0.1.35"

@@ -4,8 +4,6 @@ use std::path::{PathBuf};
 use dir;
 use error::{ToResult};
 
-extern crate env_logger;
-
 #[derive(Debug)]
 pub struct Request {
     pub name: String,
@@ -27,13 +25,13 @@ impl Request {
     pub fn get() -> ToResult<Request> {
         let yaml = load_yaml!("cli.yml");
         let app = App::from_yaml(yaml).version(crate_version!());
-        let matches = app.get_matches();
 
-        return Request::from(matches);
+        return Request::from(app);
     }
 
-    pub fn from(matches: ArgMatches) -> ToResult<Request> {
-
+    pub fn from(app: App) -> ToResult<Request> {
+        let _app = app.clone();
+        let matches = app.get_matches();
         let pathname = matches.value_of("DIRECTORY").unwrap_or("");
         let directory = try!(dir::resolve(pathname));
 
@@ -41,6 +39,13 @@ impl Request {
         let name = matches.value_of("NAME").unwrap_or(basename.as_str());
 
         let action = Action::from(&matches);
+        match action {
+            Action::Help => {
+                _app.print_help();
+                panic!("");
+            },
+            _ => {},
+        }
         let verbose = match matches.occurrences_of("verbose") {
             0 => false,
             _ => true,
@@ -60,6 +65,7 @@ pub enum Action {
     Delete,
     Last,
     ChangeDirectory,
+    Help,
 }
 
 impl Action {
@@ -78,7 +84,13 @@ impl Action {
             (_, _, true, _, _) => Action::List,
             (_, _, _, true, _) => Action::Delete,
             (_, _, _, _, true) => Action::Last,
-            _ => Action::ChangeDirectory,
+            _ => {
+                if matches.value_of("NAME").is_some() {
+                    Action::ChangeDirectory
+                } else {
+                    Action::Help
+                }
+            },
         };
 
         return action;
@@ -87,18 +99,12 @@ impl Action {
 
 #[cfg(test)]
 mod tests {
-    extern crate env_logger;
     extern crate clap;
 
     use super::*;
     use std::env;
 
     fn run(mut args: Vec<&str>) -> Request {
-        // Logger might fail if it is already initialized.
-        // let logger_result = env_logger::init();
-        // assert!(logger_result.is_ok());
-        let _ = env_logger::init();
-
         args.insert(0, "to");
 
         let yaml = load_yaml!("cli.yml");
