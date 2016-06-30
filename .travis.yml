@@ -6,7 +6,3 @@ rust:
 matrix:
   allow_failures:
   - rust: nightly
-cache:
-  directories:
-  - target/debug/deps
-  - target/debug/build
