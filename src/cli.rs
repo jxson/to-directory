@@ -25,13 +25,12 @@ impl Request {
     pub fn get() -> ToResult<Request> {
         let yaml = load_yaml!("cli.yml");
         let app = App::from_yaml(yaml).version(crate_version!());
+        let matches = app.get_matches();
 
-        return Request::from(app);
+        return Request::from(matches);
     }
 
-    pub fn from(app: App) -> ToResult<Request> {
-        let _app = app.clone();
-        let matches = app.get_matches();
+    pub fn from(matches: ArgMatches) -> ToResult<Request> {
         let pathname = matches.value_of("DIRECTORY").unwrap_or("");
         let directory = try!(dir::resolve(pathname));
 
@@ -39,13 +38,6 @@ impl Request {
         let name = matches.value_of("NAME").unwrap_or(basename.as_str());
 
         let action = Action::from(&matches);
-        match action {
-            Action::Help => {
-                _app.print_help();
-                panic!("");
-            },
-            _ => {},
-        }
         let verbose = match matches.occurrences_of("verbose") {
             0 => false,
             _ => true,
@@ -64,8 +56,7 @@ pub enum Action {
     List,
     Delete,
     Last,
-    ChangeDirectory,
-    Help,
+    ChangeDirectory
 }
 
 impl Action {
@@ -84,13 +75,7 @@ impl Action {
             (_, _, true, _, _) => Action::List,
             (_, _, _, true, _) => Action::Delete,
             (_, _, _, _, true) => Action::Last,
-            _ => {
-                if matches.value_of("NAME").is_some() {
-                    Action::ChangeDirectory
-                } else {
-                    Action::Help
-                }
-            },
+            _ => Action::ChangeDirectory,
         };
 
         return action;
@@ -167,10 +152,10 @@ mod tests {
 
     #[test]
     fn flag_delete() {
-        let request = run(vec!["--delete"]);
+        let request = run(vec!["foo", "--delete"]);
         assert_eq!(request.action, Action::Delete);
 
-        let request = run(vec!["-d"]);
+        let request = run(vec!["foo", "-d"]);
         assert_eq!(request.action, Action::Delete);
     }
 
