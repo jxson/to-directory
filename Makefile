@@ -1,5 +1,4 @@
 MAKEFLAGS += --warn-undefined-variables
-PATH := node_modules/.bin:$(PATH)
 SHELL := /bin/bash
 
 .SHELLFLAGS := -eu -o pipefail -c
@@ -21,3 +20,9 @@ install:
 PHONY: test
 test:
 	$(CARGO) $(CARGO_OPTS) test
+
+# TODO(jxson): derive the directory correctly.
+PHONY: init
+init: build # Run with: eval "$(make init)"
+	@echo -e "export PATH=\"target/debug:\$${PATH}\""
+	@echo "$$(cargo run -q -- --init)"
