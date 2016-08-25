@@ -27,6 +27,8 @@ impl Request {
         let app = App::from_yaml(yaml).version(crate_version!());
         let matches = app.get_matches();
 
+        // TODO(jxson): Add debug logger statement to view matches.
+
         return Request::from(matches);
     }
 
@@ -51,6 +53,7 @@ impl Request {
 
 #[derive(Debug, PartialEq)]
 pub enum Action {
+    Initialize,
     Get,
     Put,
     List,
@@ -61,20 +64,22 @@ pub enum Action {
 
 impl Action {
     pub fn from(matches: &ArgMatches) -> Action {
-        let (get, put, list, delete, last) = (
+        let (get, put, list, delete, last, init) = (
             matches.is_present("get"),
             matches.is_present("put"),
             matches.is_present("list"),
             matches.is_present("delete"),
             matches.value_of("NAME") == Some("-"),
+            matches.is_present("init"),
         );
 
-        let action = match (get, put, list, delete, last) {
-            (true, _, _, _, _) => Action::Get,
-            (_, true, _, _, _) => Action::Put,
-            (_, _, true, _, _) => Action::List,
-            (_, _, _, true, _) => Action::Delete,
-            (_, _, _, _, true) => Action::Last,
+        let action = match (get, put, list, delete, last, init) {
+            (true, _, _, _, _, _) => Action::Get,
+            (_, true, _, _, _, _) => Action::Put,
+            (_, _, true, _, _, _) => Action::List,
+            (_, _, _, true, _, _) => Action::Delete,
+            (_, _, _, _, true, _) => Action::Last,
+            (_, _, _, _, _, true) => Action::Initialize,
             _ => Action::ChangeDirectory,
         };
 

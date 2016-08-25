@@ -13,8 +13,8 @@ mod error;
 #[macro_use]
 mod logger;
 
-use database::{Database};
 use cli::{Action};
+use database::{Database};
 use error::{ToResult};
 
 fn main() {
@@ -42,6 +42,7 @@ fn main() {
     log!("store: {:?}", store);
 
     let result = match request.action {
+        Action::Initialize => init(),
         Action::Get => show(store, request.name),
         Action::Put => store.put(request.name, request.directory),
         Action::Delete => store.delete(request.name),
@@ -51,7 +52,7 @@ fn main() {
     };
 
     match result {
-        Ok(value) => println!("success! {:?}", value),
+        Ok(_) => {},
         Err(err) => panic!(err),
     }
 }
@@ -84,7 +85,12 @@ fn list(store: Database) -> ToResult<()> {
     return Ok(());
 }
 
-fn help(request: cli::Request) -> ToResult<()> {
-    println!("help: {:?}", request);
+// to init: prints instructions
+// to init -: echos shell
+fn init() -> ToResult<()> {
+    let script = include_str!("to.sh");
+
+    print!("{}", script);
+
     return Ok(());
 }

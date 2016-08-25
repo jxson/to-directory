@@ -12,7 +12,7 @@ pub struct NiceOutput {
 fn run(args: Vec<&str>) -> NiceOutput {
     let mut directory = env::current_exe().unwrap();
             directory.pop(); // chop off exe name but leave "debug"
-    let name = format!("to{}", env::consts::EXE_SUFFIX);
+    let name = format!("to-directory{}", env::consts::EXE_SUFFIX);
     let binary = directory.join(&name);
 
     let mut command = Command::new(binary);
@@ -74,6 +74,12 @@ fn info() {
     assert_eq!(result.status, 0);
 
     let result = run(vec!["-i"]);
+    assert_eq!(result.status, 0);
+}
+
+#[test]
+fn init() {
+    let result = run(vec!["--init"]);
     assert_eq!(result.status, 0);
 }
 

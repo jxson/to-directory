@@ -32,3 +32,13 @@ args:
       help: Verbose log output
       long: verbose
       short: v
+  - init:
+      help: Print out the initialization script.
+      long: init
+      conflicts_with:
+        - NAME
+        - DIRECTORY
+        - get
+        - put
+        - delete
+        - list

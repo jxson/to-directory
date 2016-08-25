@@ -9,7 +9,7 @@ keywords = []
 license = "ISC"
 
 [[bin]]
-name = "to"
+name = "to-directory"
 
 [dependencies]
 clap = { version = "2.6.0", features = [ "yaml" ] }
