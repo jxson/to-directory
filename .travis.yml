@@ -7,3 +7,6 @@ matrix:
   allow_failures:
   - rust: nightly
   - rust: beta
+build:
+  - cargo clean
+  - cargo test
