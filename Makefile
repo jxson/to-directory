@@ -1,5 +1,6 @@
 MAKEFLAGS += --warn-undefined-variables
 SHELL := /bin/bash
+PATH := "deps/bin:${PATH}"
 
 .SHELLFLAGS := -eu -o pipefail -c
 .DEFAULT_GOAL := all
@@ -8,6 +9,9 @@ SHELL := /bin/bash
 
 CARGO = cargo
 CARGO_OPTS =
+
+PHONY: all
+all: build
 
 PHONY: build
 build:
@@ -20,6 +24,11 @@ install:
 PHONY: test
 test:
 	$(CARGO) $(CARGO_OPTS) test
+
+
+PHONY: test-integration
+test-integration: build
+	@bats "tests/integration.bats"
 
 # TODO(jxson): derive the directory correctly.
 # http://stackoverflow.com/questions/18136918/how-to-get-current-relative-directory-of-your-makefile
