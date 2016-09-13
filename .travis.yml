@@ -14,5 +14,3 @@ cache:
   cargo: true
   directories:
   - deps
-script:
-  - make test
