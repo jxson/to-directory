@@ -14,3 +14,5 @@ cache:
   cargo: true
   directories:
   - deps
+after_success:
+  - make test-shell
