@@ -7,7 +7,7 @@ PATH := "deps/bats/bin:target/debug:${PATH}"
 .DELETE_ON_ERROR:
 .SUFFIXES:
 
-CARGO = cargo
+CARGO = $(shell which cargo)
 CARGO_OPTS =
 
 PHONY: all
