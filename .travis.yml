@@ -13,5 +13,3 @@ build:
 cache:
   directories:
   - deps
-after_success:
-  - make test-shell
