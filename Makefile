@@ -1,6 +1,6 @@
 MAKEFLAGS += --warn-undefined-variables
 SHELL := /bin/bash
-PATH := "deps/bin:${PATH}"
+PATH := "deps/bats/bin:target/debug:${PATH}"
 
 .SHELLFLAGS := -eu -o pipefail -c
 .DEFAULT_GOAL := all
@@ -15,19 +15,19 @@ all: build
 
 PHONY: build
 build:
-	$(CARGO) $(CARGO_OPTS) build
-
-PHONY: install
-install:
-	$(CARGO) $(CARGO_OPTS) build --release
+	@$(CARGO) $(CARGO_OPTS) build
 
 PHONY: test
-test:
-	$(CARGO) $(CARGO_OPTS) test
+test: test-rust test-shell
 
+PHONY: test
+test-rust:
+	@echo "== running: cargo test"
+	@$(CARGO) $(CARGO_OPTS) test
 
 PHONY: test-integration
-test-integration: build
+test-shell: build deps/bats
+	@echo "== running: bats tests/integration.bats"
 	@bats "tests/integration.bats"
 
 # TODO(jxson): derive the directory correctly.
