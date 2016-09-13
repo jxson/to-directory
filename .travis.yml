@@ -10,3 +10,9 @@ matrix:
 build:
   - cargo clean
   - cargo test
+cache:
+  cargo: true
+  directories:
+  - deps
+script:
+  - make test
