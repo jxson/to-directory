@@ -93,6 +93,11 @@ mod tests {
 
     use super::*;
     use std::env;
+    use logger;
+
+    fn setup() {
+        let _ = logger::init(false);
+    }
 
     fn run(mut args: Vec<&str>) -> Request {
         args.insert(0, "to");
@@ -113,6 +118,7 @@ mod tests {
 
     #[test]
     fn test_name() {
+        setup();
         let cwd = env::current_dir().expect("should not fail");
         let args = vec!["foo"];
         let request = run(args);
@@ -124,6 +130,7 @@ mod tests {
 
     #[test]
     fn no_flags() {
+        setup();
         let request = run(vec![]);
         assert_eq!(request.action, Action::ChangeDirectory);
     }

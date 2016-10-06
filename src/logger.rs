@@ -1,28 +1,35 @@
-static mut VERBOSE : bool = false;
+extern crate log;
+extern crate env_logger;
 
-pub fn init(should_log: bool) {
-    unsafe { VERBOSE = should_log; }
+use error::{ToResult};
+use log::{LogRecord, LogLevelFilter};
+use env_logger::LogBuilder;
+
+pub fn init(should_log: bool) -> ToResult<()> {
+    if should_log {
+        try!(init_verbose());
+    } else {
+        try!(init_env_logger());
+    }
+
+    return Ok(());
 }
 
-pub fn __verbose() -> bool {
-    return unsafe { VERBOSE };
+fn init_verbose() -> ToResult<()> {
+    let format = |record: &LogRecord| {
+        format!("to: {} - {}", record.level(), record.args())
+    };
+
+    let mut builder = LogBuilder::new();
+    builder.format(format).filter(None, LogLevelFilter::Info);
+
+    try!(builder.init());
+
+    return Ok(());
 }
 
-pub fn __log(string: String) {
-    println!("  to => {}", string);
-}
+fn init_env_logger() -> ToResult<()> {
+    try!(env_logger::init());
 
-macro_rules! log {
-    ($string:expr) => ({
-        if logger::__verbose() {
-            logger::__log($string.to_string());
-        }
-    });
-
-    ($template:expr, $($arg:tt)*) => ({
-        if logger::__verbose() {
-            let string = format!($template, $($arg)*);
-            logger::__log(string);
-        }
-    });
+    return Ok(());
 }

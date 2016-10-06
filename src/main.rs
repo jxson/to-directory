@@ -1,16 +1,21 @@
 #[macro_use]
 extern crate clap;
+
 #[macro_use]
 extern crate time;
-extern crate bincode;
+
 #[macro_use]
 extern crate rustc_serialize;
+
+extern crate bincode;
+#[macro_use]
+extern crate log;
+extern crate env_logger;
 
 mod cli;
 mod dir;
 mod database;
 mod error;
-#[macro_use]
 mod logger;
 
 use cli::{Action};
@@ -23,23 +28,26 @@ fn main() {
         Err(err) => panic!(err),
     };
 
-    logger::init(request.verbose);
-    log!("Logger works!");
-    log!("request: {:?}", request);
+    if logger::init(request.verbose).is_err() {
+        panic!("Error Initializing to::logger.");
+    }
+
+    info!("Logger works!");
+    info!("request: {:?}", request);
 
     let db = match dir::db() {
         Ok(value) => value,
         Err(err) => panic!(err),
     };
 
-    log!("db: {:?}", db);
+    info!("db: {:?}", db);
 
     let mut store = match Database::open(db) {
         Ok(db) => db,
         Err(e) => panic!("failed to open database: {:?}", e),
     };
 
-    log!("store: {:?}", store);
+    info!("store: {:?}", store);
 
     let result = match request.action {
         Action::Initialize => init(),
@@ -59,7 +67,7 @@ fn main() {
 
 fn cd(store: Database, request: cli::Request) -> ToResult<()> {
     if let Some(bookmark) = store.get(&request.name) {
-        print!("{}", bookmark.directory.to_string_lossy());
+        println!("result {}", bookmark.directory.to_string_lossy());
     } else {
         panic!("NOT FOUND");
     }
