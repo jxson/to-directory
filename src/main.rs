@@ -16,6 +16,7 @@ mod cli;
 mod dir;
 mod database;
 mod error;
+#[macro_use]
 mod logger;
 
 use cli::{Action};
@@ -25,7 +26,7 @@ use error::{ToResult};
 fn main() {
     let request = match cli::Request::get() {
         Ok(value) => value,
-        Err(err) => panic!(err),
+        Err(err) => exit!("Error parsing CLI args.\n  {:?}", err),
     };
 
     if logger::init(request.verbose).is_err() {

@@ -1,12 +1,12 @@
 extern crate log;
 extern crate env_logger;
 
+use env_logger::LogBuilder;
 use error::{ToResult};
 use log::{LogRecord, LogLevelFilter};
-use env_logger::LogBuilder;
 
-pub fn init(should_log: bool) -> ToResult<()> {
-    if should_log {
+pub fn init(verbose: bool) -> ToResult<()> {
+    if verbose {
         try!(init_verbose());
     } else {
         try!(init_env_logger());
@@ -32,4 +32,15 @@ fn init_env_logger() -> ToResult<()> {
     try!(env_logger::init());
 
     return Ok(());
+}
+
+macro_rules! exit {
+    ($fmt:expr) => {{
+        error!($fmt);
+        std::process::exit(1);
+    }};
+    ($fmt:expr, $($arg:tt)*) => {{
+        error!($fmt, $($arg)*);
+        std::process::exit(1);
+    }};
 }
