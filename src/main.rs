@@ -26,29 +26,22 @@ use error::{ToResult};
 fn main() {
     let request = match cli::Request::get() {
         Ok(value) => value,
-        Err(err) => exit!("Error parsing CLI args.\n  {:?}", err),
+        Err(err) => exit!("Failed to parse CLI args.\n  {:?}", err),
     };
 
-    if logger::init(request.verbose).is_err() {
-        panic!("Error Initializing to::logger.");
+    if let Err(err) = logger::init(request.verbose) {
+        exit!("Error initializing logger.\n {:?}", err);
     }
 
-    info!("Logger works!");
-    info!("request: {:?}", request);
-
-    let db = match dir::db() {
+    let db_path = match dir::db() {
         Ok(value) => value,
-        Err(err) => panic!(err),
+        Err(err) => exit!("Error setting up DB path.\n {:?}", err),
     };
 
-    info!("db: {:?}", db);
-
-    let mut store = match Database::open(db) {
+    let mut store = match Database::open(db_path) {
         Ok(db) => db,
-        Err(e) => panic!("failed to open database: {:?}", e),
+        Err(err) => exit!("Failed to open DB.\n {:?}", err),
     };
-
-    info!("store: {:?}", store);
 
     let result = match request.action {
         Action::Initialize => init(),

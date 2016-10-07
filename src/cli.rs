@@ -46,7 +46,6 @@ impl Request {
         };
 
         let request = Request::new(name, directory, action, verbose);
-
         return Ok(request);
     }
 }
