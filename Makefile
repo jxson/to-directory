@@ -1,6 +1,6 @@
 MAKEFLAGS += --warn-undefined-variables
 SHELL := /bin/bash
-PATH := "deps/bats/bin:target/debug:${PATH}"
+PATH := "$(shell pwd)/target/debug:${PATH}"
 
 .SHELLFLAGS := -eu -o pipefail -c
 .DEFAULT_GOAL := all
@@ -9,6 +9,8 @@ PATH := "deps/bats/bin:target/debug:${PATH}"
 
 CARGO = $(shell which cargo)
 CARGO_OPTS =
+
+bats := "$(shell pwd)/deps/bats/bin/bats"
 
 PHONY: all
 all: build
@@ -28,7 +30,11 @@ test-rust:
 PHONY: test-integration
 test-shell: build deps/bats
 	@echo "== running: bats tests/integration.bats"
-	@bats "tests/integration.bats"
+	@$(bats) "tests/integration.bats"
+
+deps/bats:
+	@git clone https://github.com/sstephenson/bats.git deps/bats
+	@touch deps/bats
 
 # TODO(jxson): derive the directory correctly.
 # http://stackoverflow.com/questions/18136918/how-to-get-current-relative-directory-of-your-makefile
