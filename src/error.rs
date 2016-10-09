@@ -1,25 +1,55 @@
-use std::io;
-use log;
+use std::io::Error as IoError;
+use std::error::Error;
+use std::fmt;
+
+use log::SetLoggerError;
 
 pub type ToResult<T> = Result<T, ToError>;
 
 #[derive(Debug)]
 pub enum ToError {
-    Io(io::Error),
-    SetLoggerError(log::SetLoggerError),
+    Io(IoError),
+    // TODO(jxson): Set this up so SetLoggerError is passive in test.
+    SetLoggerError(SetLoggerError),
+    UnknownHomeDirectory,
 }
 
-// TODO: add custom displays for these errors.
-// * SEE: https://jadpole.github.io/rust/many-error-types
-// * SEE: http://lucumr.pocoo.org/2014/11/6/error-handling-in-rust/
-impl From<io::Error> for ToError {
-    fn from(err: io::Error) -> ToError {
+impl fmt::Display for ToError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            ToError::Io(ref err) => err.fmt(f),
+            ToError::SetLoggerError(ref err) => err.fmt(f),
+            ToError::UnknownHomeDirectory => write!(f, "Unable to locate $HOME directory.")
+        }
+    }
+}
+
+impl Error for ToError {
+    fn description(&self) -> &str {
+        match *self {
+            ToError::Io(ref err) => err.description(),
+            ToError::SetLoggerError(ref err) => err.description(),
+            ToError::UnknownHomeDirectory => "$HOME not set",
+        }
+    }
+
+    fn cause(&self) -> Option<&Error> {
+        match *self {
+            ToError::Io(ref err) => Some(err),
+            ToError::SetLoggerError(ref err) => Some(err),
+            ToError::UnknownHomeDirectory => None,
+        }
+    }
+}
+
+impl From<IoError> for ToError {
+    fn from(err: IoError) -> ToError {
         ToError::Io(err)
     }
 }
 
-impl From<log::SetLoggerError> for ToError {
-    fn from(err: log::SetLoggerError) -> ToError {
+impl From<SetLoggerError> for ToError {
+    fn from(err: SetLoggerError) -> ToError {
         ToError::SetLoggerError(err)
     }
 }

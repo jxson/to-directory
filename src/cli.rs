@@ -27,8 +27,6 @@ impl Request {
         let app = App::from_yaml(yaml).version(crate_version!());
         let matches = app.get_matches();
 
-        // TODO(jxson): Add debug logger statement to view matches.
-
         return Request::from(matches);
     }
 
