@@ -21,7 +21,7 @@ mod logger;
 
 use cli::{Action};
 use database::{Database};
-use error::{ToResult};
+use error::{ToResult, ToError};
 
 fn main() {
     let request = match cli::Request::get() {
@@ -63,7 +63,7 @@ fn cd(store: Database, request: cli::Request) -> ToResult<()> {
     if let Some(bookmark) = store.get(&request.name) {
         println!("result {}", bookmark.directory.to_string_lossy());
     } else {
-        panic!("NOT FOUND");
+        exit!("Failied to retrieve \"{}\".\n{}", request.name, ToError::BookmarkNotFound);
     }
 
     return Ok(());

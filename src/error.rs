@@ -12,6 +12,7 @@ pub enum ToError {
     // TODO(jxson): Set this up so SetLoggerError is passive in test.
     SetLoggerError(SetLoggerError),
     UnknownHomeDirectory,
+    BookmarkNotFound,
 }
 
 impl fmt::Display for ToError {
@@ -19,7 +20,8 @@ impl fmt::Display for ToError {
         match *self {
             ToError::Io(ref err) => err.fmt(f),
             ToError::SetLoggerError(ref err) => err.fmt(f),
-            ToError::UnknownHomeDirectory => write!(f, "Unable to locate $HOME directory.")
+            ToError::UnknownHomeDirectory => write!(f, "Unable to locate $HOME directory."),
+            ToError::BookmarkNotFound => write!(f, "Bookmark not found."),
         }
     }
 }
@@ -30,6 +32,7 @@ impl Error for ToError {
             ToError::Io(ref err) => err.description(),
             ToError::SetLoggerError(ref err) => err.description(),
             ToError::UnknownHomeDirectory => "$HOME not set",
+            ToError::BookmarkNotFound => "",
         }
     }
 
@@ -38,6 +41,7 @@ impl Error for ToError {
             ToError::Io(ref err) => Some(err),
             ToError::SetLoggerError(ref err) => Some(err),
             ToError::UnknownHomeDirectory => None,
+            ToError::BookmarkNotFound => None,
         }
     }
 }
