@@ -33,14 +33,3 @@ fn init_env_logger() -> ToResult<()> {
 
     return Ok(());
 }
-
-macro_rules! exit {
-    ($fmt:expr) => {{
-        error!($fmt);
-        std::process::exit(1);
-    }};
-    ($fmt:expr, $($arg:tt)*) => {{
-        error!($fmt, $($arg)*);
-        std::process::exit(1);
-    }};
-}

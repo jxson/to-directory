@@ -16,12 +16,22 @@ mod cli;
 mod dir;
 mod database;
 mod error;
-#[macro_use]
 mod logger;
 
 use cli::{Action};
 use database::{Database};
 use error::{ToResult, ToError};
+
+macro_rules! exit {
+    ($fmt:expr) => {{
+        error!($fmt);
+        std::process::exit(1);
+    }};
+    ($fmt:expr, $($arg:tt)*) => {{
+        error!($fmt, $($arg)*);
+        std::process::exit(1);
+    }};
+}
 
 fn main() {
     let request = match cli::Request::get() {
@@ -35,7 +45,7 @@ fn main() {
 
     let db_path = match dir::db() {
         Ok(value) => value,
-        Err(err) => exit!("Error setting up DB path.\n {:?}", err),
+        Err(err) => exit!("Error configuring DB path.\n {:?}", err),
     };
 
     let mut store = match Database::open(db_path) {
@@ -55,28 +65,26 @@ fn main() {
 
     match result {
         Ok(_) => {},
-        Err(err) => panic!(err),
+        Err(err) => exit!("Error: {}", err),
     }
 }
 
 fn cd(store: Database, request: cli::Request) -> ToResult<()> {
     if let Some(bookmark) = store.get(&request.name) {
         println!("result {}", bookmark.directory.to_string_lossy());
+        return Ok(());
     } else {
-        exit!("Failied to retrieve \"{}\".\n{}", request.name, ToError::BookmarkNotFound);
+        return Err(ToError::BookmarkNotFound);
     }
-
-    return Ok(());
 }
 
 fn show(store: Database, key: String) -> ToResult<()> {
     if let Some(bookmark) = store.get(&key) {
         println!("info: {:?}", bookmark);
+        return Ok(());
     } else {
-        panic!("NOT FOUND");
+        return Err(ToError::BookmarkNotFound);
     }
-
-    return Ok(());
 }
 
 fn list(store: Database) -> ToResult<()> {
