@@ -13,6 +13,7 @@ pub enum ToError {
     SetLoggerError(SetLoggerError),
     UnknownHomeDirectory,
     BookmarkNotFound,
+    FailedToDeriveBasename,
 }
 
 impl fmt::Display for ToError {
@@ -22,6 +23,7 @@ impl fmt::Display for ToError {
             ToError::SetLoggerError(ref err) => err.fmt(f),
             ToError::UnknownHomeDirectory => write!(f, "Unable to locate $HOME directory."),
             ToError::BookmarkNotFound => write!(f, "Bookmark not found."),
+            ToError::FailedToDeriveBasename => write!(f, "Failed to derive basename"),
         }
     }
 }
@@ -33,6 +35,7 @@ impl Error for ToError {
             ToError::SetLoggerError(ref err) => err.description(),
             ToError::UnknownHomeDirectory => "$HOME not set",
             ToError::BookmarkNotFound => "",
+            ToError::FailedToDeriveBasename => "",
         }
     }
 
@@ -42,6 +45,7 @@ impl Error for ToError {
             ToError::SetLoggerError(ref err) => Some(err),
             ToError::UnknownHomeDirectory => None,
             ToError::BookmarkNotFound => None,
+            ToError::FailedToDeriveBasename => None,
         }
     }
 }

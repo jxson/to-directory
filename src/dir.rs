@@ -12,19 +12,18 @@ pub fn resolve(pathname: &str) -> ToResult<PathBuf> {
 
     return Ok(canonical);
 }
-// TODO(jxson): There needs to be an error here if a basename can't be derived. It should never be
-// blank.
-pub fn basename(path: &PathBuf) -> ToResult<String> {
-    let empty_string = String::from("");
 
+pub fn basename(path: &PathBuf) -> Option<String> {
     if let Some(stem) = path.file_stem() {
         let os_string = stem.to_os_string();
-        let result = os_string.into_string();
 
-        return Ok(result.unwrap_or(empty_string));
+        return match os_string.into_string() {
+            Ok(string) => Some(string),
+            Err(_) => None,
+        }
     }
 
-    return Ok(empty_string);
+    Some(String::from(""))
 }
 
 pub fn config() -> ToResult<PathBuf> {

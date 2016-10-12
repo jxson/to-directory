@@ -2,7 +2,7 @@ use clap::{App, ArgMatches};
 use std::path::{PathBuf};
 
 use dir;
-use error::{ToResult};
+use error::{ToResult, ToError};
 
 #[derive(Debug)]
 pub struct Request {
@@ -34,7 +34,11 @@ impl Request {
         let pathname = matches.value_of("DIRECTORY").unwrap_or("");
         let directory = try!(dir::resolve(pathname));
 
-        let basename = dir::basename(&directory).expect("TODO: handle this case");
+        let basename = match dir::basename(&directory) {
+            Some(basename) => basename,
+            None => return Err(ToError::FailedToDeriveBasename),
+        };
+
         let name = matches.value_of("NAME").unwrap_or(basename.as_str());
 
         let action = Action::from(&matches);
