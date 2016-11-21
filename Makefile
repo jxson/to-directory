@@ -42,3 +42,8 @@ PHONY: init
 init: build # Run with: eval "$(make init)"
 	@echo -e "export PATH=\"$(shell pwd)/target/debug:\$${PATH}\""
 	@echo "$$(cargo run -q -- --init)"
+
+PHONY: install
+install:
+	cargo build --release
+	cp target/release/to-directory "$$(brew --prefix)/bin"

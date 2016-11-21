@@ -71,7 +71,7 @@ fn main() {
 
 fn cd(store: Database, request: cli::Request) -> ToResult<()> {
     if let Some(bookmark) = store.get(&request.name) {
-        println!("result {}", bookmark.directory.to_string_lossy());
+        println!("{}", bookmark.directory.to_string_lossy());
         return Ok(());
     } else {
         return Err(ToError::BookmarkNotFound);

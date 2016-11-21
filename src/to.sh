@@ -14,11 +14,8 @@ to() {
 
   # to-directory "$@"
   for arg in "$@"; do
-    echo "to shell => arg: ${arg}"
-
     # Verbose flag is the only extra option passed during a cd.
     if [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]; then
-      echo "to shell => verbose flag: ${arg}"
       VERBOSE=true
       continue
     fi
@@ -28,17 +25,10 @@ to() {
     fi
   done
 
-  echo "to shell => args: $@"
-  echo "to shell => verbose: ${VERBOSE}"
-  echo "to shell => should cd: ${CHANGE_DIRECTORY}"
-
   if [[ $CHANGE_DIRECTORY == "true" ]]; then
     local directory
     directory=$(to-directory "$@")
     local -r status=$?
-    echo "to shell => directory: ${directory}"
-    echo "to shell => \$?: $?"
-    echo "to shell => status: ${status}"
 
     if [[ $status -ne 0 ]]; then
       return $status
@@ -46,7 +36,6 @@ to() {
       cd $directory
     fi
   else
-    echo "to shell => not changing, running without capture"
     to-directory "$@"
   fi
 }
