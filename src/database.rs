@@ -95,7 +95,7 @@ impl Database {
 
         let mut writer = BufWriter::new(file);
         match encode_into(&self.bookmarks, &mut writer, Infinite) {
-            Ok(_) => println!("successful encode"),
+            Ok(_) => {},
             Err(err) => panic!("ERROR ECODING: {:?}", err),
         }
 
