@@ -11,5 +11,10 @@ license = "ISC"
 [[bin]]
 name = "to-directory"
 
+# The library is only used for tests.
+[lib]
+name = "to"
+path = "src/lib.rs"
+
 [dependencies]
 error-chain = "0.7.2"

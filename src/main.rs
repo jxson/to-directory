@@ -1,15 +1,7 @@
-// `error_chain!` recursion limit.
-#![recursion_limit = "1024"]
 
-// Import the macro. Don't forget to add `error-chain` in your
-// `Cargo.toml`!
-#[macro_use]
-extern crate error_chain;
+extern crate to;
 
-mod cli;
-mod errors;
-
-use errors::*;
+use to::errors::*;
 
 fn main() {
     // change the error output and logging based on the flags.

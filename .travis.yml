@@ -10,6 +10,3 @@ matrix:
 build:
   - cargo clean
   - cargo test
-cache:
-  directories:
-  - deps
