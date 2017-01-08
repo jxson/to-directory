@@ -17,4 +17,5 @@ name = "to"
 path = "src/lib.rs"
 
 [dependencies]
+clap = "2.20.0"
 error-chain = "0.7.2"

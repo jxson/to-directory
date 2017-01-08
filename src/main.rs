@@ -1,6 +1,7 @@
 
 extern crate to;
 
+use to::cli;
 use to::errors::*;
 
 fn main() {
@@ -27,7 +28,7 @@ fn main() {
 }
 
 fn run() -> Result<()> {
-    // CLI has an app and matches.
-
+    let options = cli::run();
+    println!("{:?}", options);
     Ok(())
 }
