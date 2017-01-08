@@ -1,106 +1,41 @@
-#[macro_use]
-extern crate clap;
+// `error_chain!` recursion limit.
+#![recursion_limit = "1024"]
 
+// Import the macro. Don't forget to add `error-chain` in your
+// `Cargo.toml`!
 #[macro_use]
-extern crate time;
-
-#[macro_use]
-extern crate rustc_serialize;
-
-extern crate bincode;
-#[macro_use]
-extern crate log;
-extern crate env_logger;
+extern crate error_chain;
 
 mod cli;
-mod dir;
-mod database;
-mod error;
-mod logger;
+mod errors;
 
-use cli::{Action};
-use database::{Database};
-use error::{ToResult, ToError};
-
-macro_rules! exit {
-    ($fmt:expr) => {{
-        error!($fmt);
-        std::process::exit(1);
-    }};
-    ($fmt:expr, $($arg:tt)*) => {{
-        error!($fmt, $($arg)*);
-        std::process::exit(1);
-    }};
-}
+use errors::*;
 
 fn main() {
-    let request = match cli::Request::get() {
-        Ok(value) => value,
-        Err(err) => exit!("Failed to parse CLI args.\n  {:?}", err),
-    };
+    // change the error output and logging based on the flags.
+    if let Err(ref e) = run() {
+        use ::std::io::Write;
+        let stderr = &mut ::std::io::stderr();
+        let errmsg = "Error writing to stderr";
 
-    if let Err(err) = logger::init(request.verbose) {
-        exit!("Error initializing logger.\n {:?}", err);
-    }
+        writeln!(stderr, "error: {}", e).expect(errmsg);
 
-    let db_path = match dir::db() {
-        Ok(value) => value,
-        Err(err) => exit!("Error configuring DB path.\n {:?}", err),
-    };
+        for e in e.iter().skip(1) {
+            writeln!(stderr, "caused by: {}", e).expect(errmsg);
+        }
 
-    let mut store = match Database::open(db_path) {
-        Ok(db) => db,
-        Err(err) => exit!("Failed to open DB.\n {:?}", err),
-    };
+        // The backtrace is not always generated. Try to run this example
+        // with `RUST_BACKTRACE=1`.
+        if let Some(backtrace) = e.backtrace() {
+            writeln!(stderr, "backtrace: {:?}", backtrace).expect(errmsg);
+        }
 
-    let result = match request.action {
-        Action::Initialize => init(),
-        Action::Get => show(store, request.name),
-        Action::Put => store.put(request.name, request.directory),
-        Action::Delete => store.delete(request.name),
-        Action::List => list(store),
-        Action::ChangeDirectory => cd(store, request),
-        _ => panic!("'{:?}' NOT IMPLEMENTED!", request.action),
-    };
-
-    match result {
-        Ok(_) => {},
-        Err(err) => exit!("Error: {}", err),
+        ::std::process::exit(1);
     }
 }
 
-fn cd(store: Database, request: cli::Request) -> ToResult<()> {
-    if let Some(bookmark) = store.get(&request.name) {
-        println!("{}", bookmark.directory.to_string_lossy());
-        return Ok(());
-    } else {
-        return Err(ToError::BookmarkNotFound);
-    }
-}
+fn run() -> Result<()> {
+    // CLI has an app and matches.
 
-fn show(store: Database, key: String) -> ToResult<()> {
-    if let Some(bookmark) = store.get(&key) {
-        println!("info: {:?}", bookmark);
-        return Ok(());
-    } else {
-        return Err(ToError::BookmarkNotFound);
-    }
-}
-
-fn list(store: Database) -> ToResult<()> {
-    for (key, bookmark) in store.all() {
-        println!("list: {}: {:?}", key, bookmark);
-    }
-
-    return Ok(());
-}
-
-// to init: prints instructions
-// to init -: echos shell
-fn init() -> ToResult<()> {
-    let script = include_str!("to.sh");
-
-    print!("{}", script);
-
-    return Ok(());
+    Ok(())
 }

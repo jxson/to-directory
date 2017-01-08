@@ -12,9 +12,4 @@ license = "ISC"
 name = "to-directory"
 
 [dependencies]
-clap = { version = "2.6.0", features = [ "yaml" ] }
-rustc-serialize = "0.3.18"
-bincode = "0.5.1"
-time = "0.1.35"
-log = "0.3.6"
-env_logger = "0.3.5"
+error-chain = "0.7.2"
