@@ -17,9 +17,7 @@ pub struct Options {
 
 impl Options {
     fn new(matches: clap::ArgMatches) -> Options {
-        let verbose = matches.is_present("verbose");
-
-        Options { verbose: verbose }
+        Options { verbose: matches.is_present("verbose") }
     }
 }
 
@@ -34,8 +32,8 @@ impl<'a> CLI<'a> {
             .author("Jason Campbell <jason@artifact.sh>")
             .about("Bookmark directories")
             .arg(clap::Arg::with_name("verbose")
+                .long("verbose")
                 .short("v")
-                .long("input")
                 .help("Verbose log output")
                 .takes_value(false));
 
@@ -47,8 +45,9 @@ impl<'a> CLI<'a> {
         cli.app.get_matches()
     }
 
-    fn matches_from(args: Vec<&str>) -> clap::ArgMatches {
+    fn matches_from(mut args: Vec<&str>) -> clap::ArgMatches {
         let cli = CLI::new();
+        args.insert(0, "to");
         cli.app.get_matches_from(args)
     }
 }

@@ -5,7 +5,6 @@ use to::cli;
 #[test]
 fn cli_no_flags() {
     let options = cli::run();
-
     assert_eq!(options.verbose, false);
 }
 
