@@ -1,6 +1,7 @@
 extern crate to;
 
 use to::cli;
+use to::cli::{Action};
 
 #[test]
 fn cli_no_flags() {
@@ -18,4 +19,40 @@ fn cli_flag_verbose() {
 
     let options = cli::_run(vec!["-v"]);
     assert_eq!(options.verbose, true);
+}
+
+#[test]
+fn cli_flag_info() {
+    let options = cli::_run(vec!["--info"]);
+    assert_eq!(options.action, Action::GetBookmark);
+
+    let options = cli::_run(vec!["-i"]);
+    assert_eq!(options.action, Action::GetBookmark);
+}
+
+#[test]
+fn cli_flag_save() {
+    let options = cli::_run(vec!["--save"]);
+    assert_eq!(options.action, Action::PutBookmark);
+
+    let options = cli::_run(vec!["-s"]);
+    assert_eq!(options.action, Action::PutBookmark);
+}
+
+#[test]
+fn cli_flag_list() {
+    let options = cli::_run(vec!["--list"]);
+    assert_eq!(options.action, Action::ListBookmarks);
+
+    let options = cli::_run(vec!["-l"]);
+    assert_eq!(options.action, Action::ListBookmarks);
+}
+
+#[test]
+fn cli_flag_delete() {
+    let options = cli::_run(vec!["foo", "--delete"]);
+    assert_eq!(options.action, Action::DeleteBookmark);
+
+    let options = cli::_run(vec!["foo", "-d"]);
+    assert_eq!(options.action, Action::DeleteBookmark);
 }
