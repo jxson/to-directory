@@ -17,9 +17,11 @@ pub struct Options {
 
 impl Options {
     fn new(matches: clap::ArgMatches) -> Options {
-        return Options {
-            verbose: false,
-        };
+        let verbose = matches.is_present("verbose");
+
+        Options {
+            verbose: verbose,
+        }
     }
 }
 
@@ -34,19 +36,21 @@ impl<'a,> CLI<'a> {
             .author("Jason Campbell <jason@artifact.sh>")
             .about("Bookmark directories")
             .arg(clap::Arg::with_name("verbose")
+                .short("v")
+                .long("input")
                 .help("Verbose log output")
-                .short("v"));
+                .takes_value(false));
 
         CLI { app: app }
     }
 
     fn matches() -> clap::ArgMatches<'a> {
         let cli = CLI::new();
-        return cli.app.get_matches();
+        cli.app.get_matches()
     }
 
     fn matches_from(args: Vec<&str>) -> clap::ArgMatches {
         let cli = CLI::new();
-        return cli.app.get_matches_from(args);
+        cli.app.get_matches_from(args)
     }
 }
