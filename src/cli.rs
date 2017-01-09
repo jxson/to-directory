@@ -19,9 +19,7 @@ impl Options {
     fn new(matches: clap::ArgMatches) -> Options {
         let verbose = matches.is_present("verbose");
 
-        Options {
-            verbose: verbose,
-        }
+        Options { verbose: verbose }
     }
 }
 
@@ -29,7 +27,7 @@ struct CLI<'a> {
     app: clap::App<'a, 'a>,
 }
 
-impl<'a,> CLI<'a> {
+impl<'a> CLI<'a> {
     fn new() -> CLI<'a> {
         let app = clap::App::new("to")
             .version(crate_version!())
