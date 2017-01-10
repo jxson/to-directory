@@ -56,3 +56,9 @@ fn cli_flag_delete() {
     let options = cli::_run(vec!["foo", "-d"]);
     assert_eq!(options.action, Action::DeleteBookmark);
 }
+
+#[test]
+fn cli_flag_init() {
+    let options = cli::_run(vec!["--init"]);
+    assert_eq!(options.initialize, true);
+}

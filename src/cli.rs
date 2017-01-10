@@ -87,17 +87,29 @@ impl<'a> CLI<'a> {
                 .short("s")
                 .help("Save bookmark")
                 .takes_value(false))
-            // DELETE should require name.
             .arg(clap::Arg::with_name("delete")
                 .long("delete")
                 .short("d")
                 .help("Delete bookmark")
-                .takes_value(false))
+                .takes_value(false)
+                .requires("NAME"))
             .arg(clap::Arg::with_name("list")
                 .long("list")
                 .short("l")
                 .help("List all bookmarks")
-                .takes_value(false));
+                .takes_value(false))
+            .arg(clap::Arg::with_name("initialize")
+                .long("init")
+                .help("Echo initialization script")
+                .takes_value(false)
+                .conflicts_with_all(&[
+                    "NAME",
+                    "DIRECTORY",
+                    "get",
+                    "put",
+                    "delete",
+                    "list",
+                ]));
 
         CLI { app: app }
     }
