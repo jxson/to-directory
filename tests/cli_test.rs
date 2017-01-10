@@ -7,6 +7,9 @@ use to::cli::Action;
 fn cli_no_flags() {
     let options = cli::run();
     assert_eq!(options.verbose, false);
+    assert_eq!(options.initialize, false);
+    assert_eq!(options.name, None);
+    assert_eq!(options.action, Action::None);
 }
 
 #[test]
