@@ -1,7 +1,7 @@
 extern crate to;
 
 use to::cli;
-use to::cli::{Action};
+use to::cli::Action;
 
 #[test]
 fn cli_no_flags() {

@@ -29,12 +29,10 @@ pub struct Options {
 
 impl Options {
     fn new(matches: clap::ArgMatches) -> Options {
-        let (delete, get, list, put) = (
-            matches.is_present("delete"),
-            matches.is_present("get"),
-            matches.is_present("list"),
-            matches.is_present("put"),
-        );
+        let (delete, get, list, put) = (matches.is_present("delete"),
+                                        matches.is_present("get"),
+                                        matches.is_present("list"),
+                                        matches.is_present("put"));
 
         let action = match (delete, get, list, put) {
             (true, _, _, _) => Action::DeleteBookmark,
