@@ -24,6 +24,7 @@ pub struct Options {
     pub verbose: bool,
     pub initialize: bool,
     pub action: Action,
+    pub name: Option<String>,
 }
 
 impl Options {
@@ -43,10 +44,16 @@ impl Options {
             _ => Action::None,
         };
 
+        let name = match matches.value_of("NAME") {
+            Some(value) => Some(String::from(value)),
+            None => None,
+        };
+
         Options {
             verbose: matches.is_present("verbose"),
             initialize: matches.is_present("initialize"),
             action: action,
+            name: name,
         }
     }
 }

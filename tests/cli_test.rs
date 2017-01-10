@@ -10,6 +10,13 @@ fn cli_no_flags() {
 }
 
 #[test]
+fn cli_name() {
+    let options = cli::_run(vec!["foo"]);
+    assert_eq!(options.action, Action::None);
+    assert_eq!(options.name, Some(String::from("foo")));
+}
+
+#[test]
 fn cli_flag_verbose() {
     let options = cli::_run(vec![]);
     assert_eq!(options.verbose, false);
