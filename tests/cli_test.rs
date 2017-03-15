@@ -4,7 +4,14 @@ use to::cli;
 use to::cli::Action;
 
 #[test]
-fn cli_no_flags() {
+fn cli_name() {
+    let options = cli::from(vec!["foo"]);
+    assert_eq!(options.action, Action::None);
+    assert_eq!(options.name, Some(String::from("foo")));
+}
+
+#[test]
+fn cli_flag_none() {
     let options = cli::run();
     assert_eq!(options.verbose, false);
     assert_eq!(options.initialize, false);
@@ -13,62 +20,55 @@ fn cli_no_flags() {
 }
 
 #[test]
-fn cli_name() {
-    let options = cli::_run(vec!["foo"]);
-    assert_eq!(options.action, Action::None);
-    assert_eq!(options.name, Some(String::from("foo")));
-}
-
-#[test]
 fn cli_flag_verbose() {
-    let options = cli::_run(vec![]);
+    let options = cli::from(vec![]);
     assert_eq!(options.verbose, false);
 
-    let options = cli::_run(vec!["--verbose"]);
+    let options = cli::from(vec!["--verbose"]);
     assert_eq!(options.verbose, true);
 
-    let options = cli::_run(vec!["-v"]);
+    let options = cli::from(vec!["-v"]);
     assert_eq!(options.verbose, true);
 }
 
 #[test]
 fn cli_flag_info() {
-    let options = cli::_run(vec!["--info"]);
+    let options = cli::from(vec!["--info"]);
     assert_eq!(options.action, Action::GetBookmark);
 
-    let options = cli::_run(vec!["-i"]);
+    let options = cli::from(vec!["-i"]);
     assert_eq!(options.action, Action::GetBookmark);
 }
 
 #[test]
 fn cli_flag_save() {
-    let options = cli::_run(vec!["--save"]);
+    let options = cli::from(vec!["--save"]);
     assert_eq!(options.action, Action::PutBookmark);
 
-    let options = cli::_run(vec!["-s"]);
+    let options = cli::from(vec!["-s"]);
     assert_eq!(options.action, Action::PutBookmark);
 }
 
 #[test]
 fn cli_flag_list() {
-    let options = cli::_run(vec!["--list"]);
+    let options = cli::from(vec!["--list"]);
     assert_eq!(options.action, Action::ListBookmarks);
 
-    let options = cli::_run(vec!["-l"]);
+    let options = cli::from(vec!["-l"]);
     assert_eq!(options.action, Action::ListBookmarks);
 }
 
 #[test]
 fn cli_flag_delete() {
-    let options = cli::_run(vec!["foo", "--delete"]);
+    let options = cli::from(vec!["foo", "--delete"]);
     assert_eq!(options.action, Action::DeleteBookmark);
 
-    let options = cli::_run(vec!["foo", "-d"]);
+    let options = cli::from(vec!["foo", "-d"]);
     assert_eq!(options.action, Action::DeleteBookmark);
 }
 
 #[test]
 fn cli_flag_init() {
-    let options = cli::_run(vec!["--init"]);
+    let options = cli::from(vec!["--init"]);
     assert_eq!(options.initialize, true);
 }
