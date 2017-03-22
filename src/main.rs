@@ -1,6 +1,14 @@
 
 extern crate to;
 
+#[macro_use]
+extern crate slog;
+extern crate slog_bunyan;
+extern crate slog_stream;
+
+use slog::DrainExt;
+
+
 use to::cli;
 use to::errors::*;
 
@@ -28,7 +36,26 @@ fn main() {
 }
 
 fn run() -> Result<()> {
+    // Initialize logger
+    // https://github.com/slog-rs/slog
+    let log = slog::Logger::root(
+        slog_stream::stream(
+                std::io::stderr(),
+                slog_bunyan::default()
+        ).fuse(), o!("version" => env!("CARGO_PKG_VERSION")));
+
+    // let log =
+    info!(log, "foo"; "stage" => "end");
+
     let options = cli::run();
+    let log = log.new(o!("module" => "cli"));
+
+    info!(log, "hello"; "options" => format_args!("{:?}", options));
+
+    // Get json rendering for logger.
+    // https://github.com/loggerhead/shadowsocks-rust/blob/master/src/my_logger.rs
+
+    // info!(self.log, "wrote recording"; "uuid" => format_args!("{}", r.sample_file_uuid.hyphenated()));
     println!("{:?}", options);
     Ok(())
 }
