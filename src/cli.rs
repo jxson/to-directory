@@ -1,4 +1,10 @@
 use clap;
+use slog;
+use std;
+use serde_json;
+use std::fmt;
+
+use errors::*;
 
 pub fn run() -> Options {
     let matches = CLI::matches();
@@ -10,7 +16,7 @@ pub fn from(args: Vec<&str>) -> Options {
     Options::new(matches)
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 pub enum Action {
     DeleteBookmark,
     GetBookmark,
@@ -19,12 +25,22 @@ pub enum Action {
     None,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Serialize)]
 pub struct Options {
     pub verbose: bool,
     pub initialize: bool,
     pub action: Action,
     pub name: Option<String>,
+}
+
+impl slog::Value for Options {
+    fn serialize(&self,
+                 _record: &slog::Record,
+                 key: slog::Key,
+                 serializer: &mut slog::Serializer)
+                 -> slog::Result {
+        serializer.emit_arguments(key, &format_args!("{:?}", self))
+    }
 }
 
 impl Options {
