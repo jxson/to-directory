@@ -17,10 +17,11 @@ name = "to"
 path = "src/lib.rs"
 
 [dependencies]
+chrono = "0.3.0"
 clap = "2.20.0"
 error-chain = "0.7.2"
-slog = "2.0.0-2.2"
-slog-bunyan = "2.0.0-2.0"
+slog = "~2.0.0-1"
+slog-json = "~2.0.0-1"
 slog-stream = "1.2.0"
 serde = "0.9.11"
 serde_json = "0.9.9"
