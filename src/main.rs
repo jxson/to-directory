@@ -37,12 +37,16 @@ fn main() {
 
 fn run() -> Result<()> {
     let log = logger::root();
-
-    info!(log, "foo"; "stage" => "end");
+    debug!(log, "logger initialized");
 
     let options = cli::run();
-    let log = log.new(o!("module" => "cli"));
 
-    info!(log, "hello");
+    info!(log, "parsed CLI options";
+        "action" => format!("{:?}", options.action),
+        "initialize" => options.initialize,
+        "name" => options.name,
+        "verbose" => options.verbose,
+    );
+
     Ok(())
 }

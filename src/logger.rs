@@ -25,7 +25,9 @@ pub fn root() -> slog::Logger {
     );
     let foo = slog_json::Json::new(out).add_key_value(map).build();
     let mutex = Mutex::new(foo).map(slog::Fuse);
-    let log = slog::Logger::root(mutex, o!("version" => env!("CARGO_PKG_VERSION")));
+    let log = slog::Logger::root(mutex, o!(
+        "version" => env!("CARGO_PKG_VERSION")
+    ));
 
     log
 }
