@@ -1,15 +1,10 @@
-
 extern crate to;
 #[macro_use]
 extern crate slog;
-extern crate slog_json;
-extern crate slog_stream;
-#[macro_use]
-extern crate serde_json;
-extern crate chrono;
 
 use to::logger;
 use to::cli;
+use to::cli::Action;
 use to::errors::*;
 
 fn main() {
@@ -41,12 +36,28 @@ fn run() -> Result<()> {
 
     let options = cli::run();
 
+    // TODO(jasoncampbell): change log level and frormat based on CLI flags.
     info!(log, "parsed CLI options";
         "action" => format!("{:?}", options.action),
         "initialize" => options.initialize,
-        "name" => options.name,
+        "name" => format!("{:?}", options.name),
         "verbose" => options.verbose,
     );
 
+    // to-directory --init # echo the shell script for the `to` function.
+    if options.initialize == true {
+        print!("{}", include_str!("to.sh"));
+        return Ok(());
+    }
+
+    let result = match options.action {
+        Action::Get => show(options.name),
+        _ => panic!("Not implemented"),
+    };
+
+    Ok(())
+}
+
+fn show(name: Option<String>) -> Result<()> {
     Ok(())
 }

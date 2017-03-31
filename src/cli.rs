@@ -17,11 +17,11 @@ pub fn from(args: Vec<&str>) -> Options {
 
 #[derive(Debug, PartialEq)]
 pub enum Action {
-    DeleteBookmark,
-    GetBookmark,
-    ListBookmarks,
-    PutBookmark,
-    None,
+    Delete,
+    Get,
+    List,
+    Put,
+    Go,
 }
 
 #[derive(Debug, PartialEq)]
@@ -40,11 +40,11 @@ impl Options {
                                         matches.is_present("put"));
 
         let action = match (delete, get, list, put) {
-            (true, _, _, _) => Action::DeleteBookmark,
-            (_, true, _, _) => Action::GetBookmark,
-            (_, _, true, _) => Action::ListBookmarks,
-            (_, _, _, true) => Action::PutBookmark,
-            _ => Action::None,
+            (true, _, _, _) => Action::Delete,
+            (_, true, _, _) => Action::Get,
+            (_, _, true, _) => Action::List,
+            (_, _, _, true) => Action::Put,
+            _ => Action::Go,
         };
 
         let name = match matches.value_of("NAME") {
