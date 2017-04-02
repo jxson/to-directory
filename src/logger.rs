@@ -10,11 +10,8 @@ pub fn root() -> slog::Logger {
     let map = o!(
         "name" => "to",
         "ms" => slog::PushFnValue(move |_ : &slog::Record, ser| {
-            let now = chrono::Local::now();
-            let seconds = now.timestamp();
-            let ms = now.timestamp_subsec_millis();
-            let time = format!("{}{}", seconds, ms);
-            ser.serialize(time)
+            let ms = ::now();
+            ser.serialize(ms)
         }),
         "level" => slog::FnValue(move |record: &slog::Record| {
             record.level().as_short_str()

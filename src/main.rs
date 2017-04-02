@@ -4,6 +4,7 @@ extern crate slog;
 
 use to::{cli, dir, logger};
 use to::cli::Action;
+use to::database::{ Database };
 use to::errors::*;
 
 fn main() {
@@ -50,10 +51,11 @@ fn run() -> Result<()> {
     }
 
     let config = try!(dir::config(options.config));
+    info!(log, "config initialized"; "config" => config.to_str());
 
-    info!(log, "config initialized"; "config" => config.to_str() );
+    let store = try!(Database::open(config));
+    info!(log, "database opened");
 
-    // let store = try!(Database::open(config));
 
     let result = match options.action {
         Action::Get => show(options.name),
@@ -62,16 +64,6 @@ fn run() -> Result<()> {
 
     Ok(())
 }
-
-// let db_path = match dir::db() {
-//     Ok(value) => value,
-//     Err(err) => exit!("Error configuring DB path.\n {:?}", err),
-// };
-//
-// let mut store = match Database::open(db_path) {
-//     Ok(db) => db,
-//     Err(err) => exit!("Failed to open DB.\n {:?}", err),
-// };
 fn show(name: Option<String>) -> Result<()> {
     Ok(())
 }
