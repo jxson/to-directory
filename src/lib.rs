@@ -14,5 +14,6 @@ extern crate slog_json;
 extern crate slog_stream;
 
 pub mod cli;
+pub mod dir;
 pub mod errors;
 pub mod logger;

@@ -1,2 +1,11 @@
+use std;
 
-error_chain!{}
+error_chain! {
+    errors {
+        UnknownHomeDirectory
+    }
+
+    foreign_links {
+        IOError(std::io::Error);
+    }
+}

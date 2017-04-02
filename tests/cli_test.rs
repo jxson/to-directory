@@ -6,7 +6,7 @@ use to::cli::Action;
 #[test]
 fn cli_name() {
     let options = cli::from(vec!["foo"]);
-    assert_eq!(options.action, Action::None);
+    assert_eq!(options.action, Action::Go);
     assert_eq!(options.name, Some(String::from("foo")));
 }
 
@@ -16,7 +16,7 @@ fn cli_flag_none() {
     assert_eq!(options.verbose, false);
     assert_eq!(options.initialize, false);
     assert_eq!(options.name, None);
-    assert_eq!(options.action, Action::None);
+    assert_eq!(options.action, Action::Go);
 }
 
 #[test]

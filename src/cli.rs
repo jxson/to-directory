@@ -30,6 +30,7 @@ pub struct Options {
     pub initialize: bool,
     pub action: Action,
     pub name: Option<String>,
+    pub config: Option<String>,
 }
 
 impl Options {
@@ -52,11 +53,17 @@ impl Options {
             None => None,
         };
 
+        let config = match matches.value_of("config") {
+            Some(value) => Some(String::from(value)),
+            None => None,
+        };
+
         Options {
-            verbose: matches.is_present("verbose"),
-            initialize: matches.is_present("initialize"),
             action: action,
+            config: config,
+            initialize: matches.is_present("initialize"),
             name: name,
+            verbose: matches.is_present("verbose"),
         }
     }
 }
@@ -76,6 +83,12 @@ impl<'a> CLI<'a> {
                 .long("verbose")
                 .short("v")
                 .help("Verbose log output")
+                .takes_value(false))
+
+            .arg(clap::Arg::with_name("config")
+                .long("config")
+                .short("c")
+                .help("Config dir, defaults to ~/.to")
                 .takes_value(false))
 
             // Positional arguments.
