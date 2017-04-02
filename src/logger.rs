@@ -1,6 +1,5 @@
 use slog;
 use slog_json;
-use chrono;
 use std;
 use slog::Drain;
 use std::sync::Mutex;

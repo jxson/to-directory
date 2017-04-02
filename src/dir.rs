@@ -5,6 +5,29 @@ use std::io;
 
 use errors::*;
 
+pub fn resolve(pathname: String) -> Result<PathBuf> {
+    let mut absolute = try!(env::current_dir());
+            absolute.push(pathname);
+
+    let canonical = try!(absolute.canonicalize());
+
+    return Ok(canonical);
+}
+
+pub fn basename(path: &PathBuf) -> Result<String> {
+    match path.file_stem() {
+        None => bail!(ErrorKind::FailedToDeriveName),
+        Some(stem) => {
+            let os_string = stem.to_os_string();
+
+            match os_string.into_string() {
+                Ok(string) => Ok(string),
+                Err(_) => bail!(ErrorKind::FailedToDeriveName),
+            }
+        }
+    }
+}
+
 pub fn config(directory: Option<String>) -> Result<PathBuf> {
     let path = match directory {
         Some(_) => bail!("--config not yet supported."),

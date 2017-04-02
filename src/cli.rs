@@ -1,9 +1,4 @@
 use clap;
-use slog;
-use std;
-use std::fmt;
-
-use errors::*;
 
 pub fn run() -> Options {
     let matches = CLI::matches();
@@ -30,6 +25,7 @@ pub struct Options {
     pub initialize: bool,
     pub action: Action,
     pub name: Option<String>,
+    pub pathname: String,
     pub config: Option<String>,
 }
 
@@ -48,19 +44,16 @@ impl Options {
             _ => Action::Go,
         };
 
-        let name = match matches.value_of("NAME") {
-            Some(value) => Some(String::from(value)),
-            None => None,
-        };
+        let config = matches.value_of("config").map(|value| String::from(value));
 
-        let config = match matches.value_of("config") {
-            Some(value) => Some(String::from(value)),
-            None => None,
-        };
+        let name = matches.value_of("NAME").map(|value| String::from(value));
+
+        let pathname = String::from(matches.value_of("DIRECTORY").unwrap_or(""));
 
         Options {
             action: action,
             config: config,
+            pathname: pathname,
             initialize: matches.is_present("initialize"),
             name: name,
             verbose: matches.is_present("verbose"),
