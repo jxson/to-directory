@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 use std::collections::BTreeMap;
+use std::collections::btree_map::Iter;
 use std::fs::{File, OpenOptions};
 use std::io;
 use std::io::{BufReader, BufWriter};
@@ -75,6 +76,16 @@ impl Database {
         }
     }
 
+    pub fn delete(&mut self, key: String) -> Result<()> {
+        match self.bookmarks.remove(&key) {
+            None => bail!(ErrorKind::BookmarkNotFound),
+            _ => {},
+        };
+
+        try!(self.close());
+        Ok(())
+    }
+
     fn update(&mut self, key: String, path: PathBuf) -> Result<()>{
         match self.bookmarks.get_mut(&key) {
             Some(bookmark) => {
@@ -94,6 +105,10 @@ impl Database {
 
         try!(self.close());
         Ok(())
+    }
+
+    pub fn list<'a>(&'a self) -> Iter<'a, String, Bookmark> {
+        return self.bookmarks.iter();
     }
 
     fn close(&self) -> Result<()> {

@@ -16,7 +16,7 @@ pub enum Action {
     Get,
     List,
     Put,
-    Go,
+    Pathname,
 }
 
 #[derive(Debug, PartialEq)]
@@ -41,7 +41,7 @@ impl Options {
             (_, true, _, _) => Action::Get,
             (_, _, true, _) => Action::List,
             (_, _, _, true) => Action::Put,
-            _ => Action::Go,
+            _ => Action::Pathname,
         };
 
         let config = matches.value_of("config").map(|value| String::from(value));

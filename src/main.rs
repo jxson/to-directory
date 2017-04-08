@@ -1,7 +1,6 @@
 extern crate to;
 #[macro_use]
 extern crate slog;
-#[macro_use]
 extern crate error_chain;
 
 use to::{cli, dir, logger};
@@ -68,7 +67,9 @@ fn run() -> Result<()> {
     let result = match options.action {
         Action::Get => show(store, name),
         Action::Put => store.put(name, path),
-        _ => panic!("Not implemented"),
+        Action::Delete => store.delete(name),
+        Action::List => list(store),
+        Action::Pathname => pathname(store, name),
     };
 
     result
@@ -77,5 +78,20 @@ fn run() -> Result<()> {
 fn show(store: Database, name: String) -> Result<()> {
     let bookmark = try!(store.get(name));
     println!("bookmark: {:?}", bookmark);
+    Ok(())
+}
+
+fn list(store: Database) -> Result<()> {
+    for (key, bookmark) in store.list() {
+        println!("list: {}: {:?}", key, bookmark);
+    }
+
+    return Ok(());
+}
+
+fn pathname(store: Database, name: String) -> Result<()> {
+    let bookmark = try!(store.get(name));
+    let value = bookmark.directory.to_string_lossy();
+    println!("{}", value);
     Ok(())
 }
