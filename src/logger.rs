@@ -1,11 +1,10 @@
 use slog;
 use slog_json;
 use std;
-use slog::Drain;
+use slog::{Drain, LevelFilter, Level};
 use std::sync::Mutex;
 
-pub fn root() -> slog::Logger {
-    let out = std::io::stderr();
+pub fn root(verbose: bool) -> slog::Logger {
     let map = o!(
         "name" => "to",
         "ms" => slog::PushFnValue(move |_ : &slog::Record, ser| {
@@ -19,8 +18,15 @@ pub fn root() -> slog::Logger {
             ser.serialize(record.msg())
         }),
     );
-    let foo = slog_json::Json::new(out).add_key_value(map).build();
-    let mutex = Mutex::new(foo).map(slog::Fuse);
+
+    let stderr = std::io::stderr();
+    let stream = slog_json::Json::new(stderr).add_key_value(map).build();
+    let filter = match verbose {
+        true => LevelFilter::new(stream, Level::Info),
+        false => LevelFilter::new(stream, Level::Error),
+    };
+
+    let mutex = Mutex::new(filter).map(slog::Fuse);
     let log = slog::Logger::root(mutex, o!(
         "version" => env!("CARGO_PKG_VERSION")
     ));

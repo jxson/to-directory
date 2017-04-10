@@ -13,18 +13,18 @@ fn main() {
     if let Err(ref e) = run() {
         use std::io::Write;
         let stderr = &mut ::std::io::stderr();
-        let errmsg = "Error writing to stderr";
+        let stderr_errmsg = "Error writing to stderr";
 
-        writeln!(stderr, "error: {}", e).expect(errmsg);
+        writeln!(stderr, "error: {}", e).expect(stderr_errmsg);
 
         for e in e.iter().skip(1) {
-            writeln!(stderr, "caused by: {}", e).expect(errmsg);
+            writeln!(stderr, "caused by: {}", e).expect(stderr_errmsg);
         }
 
         // The backtrace is not always generated. Try to run this example
         // with `RUST_BACKTRACE=1`.
         if let Some(backtrace) = e.backtrace() {
-            writeln!(stderr, "backtrace: {:?}", backtrace).expect(errmsg);
+            writeln!(stderr, "backtrace: {:?}", backtrace).expect(stderr_errmsg);
         }
 
         ::std::process::exit(1);
@@ -32,12 +32,11 @@ fn main() {
 }
 
 fn run() -> Result<()> {
-    let log = logger::root();
+    let options = cli::run();
+    let log = logger::root(options.verbose);
+
     debug!(log, "logger initialized");
 
-    let options = cli::run();
-
-    // TODO(jasoncampbell): change log level and frormat based on CLI flags.
     info!(log, "parsed CLI options";
         "action" => format!("{:?}", options.action),
         "initialize" => options.initialize,
@@ -86,7 +85,7 @@ fn list(store: Database) -> Result<()> {
         println!("list: {}: {:?}", key, bookmark);
     }
 
-    return Ok(());
+    Ok(())
 }
 
 fn pathname(store: Database, name: String) -> Result<()> {

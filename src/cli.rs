@@ -72,6 +72,7 @@ impl<'a> CLI<'a> {
             .author(crate_authors!())
             .about("Bookmark directories")
 
+            // User friendly info! output.
             .arg(clap::Arg::with_name("verbose")
                 .long("verbose")
                 .short("v")

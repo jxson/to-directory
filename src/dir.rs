@@ -16,13 +16,13 @@ pub fn resolve(pathname: String) -> Result<PathBuf> {
 
 pub fn basename(path: &PathBuf) -> Result<String> {
     match path.file_stem() {
-        None => bail!(ErrorKind::FailedToDeriveName),
+        None => bail!(ErrorKind::FailedToDeriveBasename(path.to_path_buf())),
         Some(stem) => {
             let os_string = stem.to_os_string();
 
             match os_string.into_string() {
                 Ok(string) => Ok(string),
-                Err(_) => bail!(ErrorKind::FailedToDeriveName),
+                Err(_) => bail!(ErrorKind::FailedToDeriveBasename(path.to_path_buf())),
             }
         }
     }
@@ -30,7 +30,7 @@ pub fn basename(path: &PathBuf) -> Result<String> {
 
 pub fn config(directory: Option<String>) -> Result<PathBuf> {
     let path = match directory {
-        Some(_) => bail!("--config not yet supported."),
+        Some(_) => bail!("--config not yet supported, bump issue #13: https://git.io/vSKT8"),
         None => {
             let mut path = try!(home());
             path.push(".to");
@@ -47,7 +47,7 @@ pub fn config(directory: Option<String>) -> Result<PathBuf> {
 
 fn home() -> Result<PathBuf> {
     match env::home_dir() {
-        Some(value) => return Ok(value),
+        Some(value) => Ok(value),
         None => bail!(ErrorKind::UnknownHomeDirectory),
     }
 }

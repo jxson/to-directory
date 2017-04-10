@@ -60,7 +60,7 @@ impl Database {
     pub fn get(&self, key: String) -> Result<&Bookmark> {
         let bookmark = match self.bookmarks.get(&key) {
             Some(bookmark) => bookmark,
-            None => bail!(ErrorKind::BookmarkNotFound),
+            None => bail!(ErrorKind::BookmarkNotFound(key)),
         };
 
         Ok(bookmark)
@@ -78,7 +78,7 @@ impl Database {
 
     pub fn delete(&mut self, key: String) -> Result<()> {
         match self.bookmarks.remove(&key) {
-            None => bail!(ErrorKind::BookmarkNotFound),
+            None => bail!(ErrorKind::BookmarkNotFound(key)),
             _ => {},
         };
 
@@ -92,7 +92,7 @@ impl Database {
                 bookmark.directory = path;
                 bookmark.updated_at = ::now();
             }
-            None => bail!(ErrorKind::BookmarkNotFound)
+            None => bail!(ErrorKind::BookmarkNotFound(key))
         }
 
         try!(self.close());
