@@ -5,7 +5,7 @@ extern crate error_chain;
 
 use to::{cli, dir, logger};
 use to::cli::Action;
-use to::database::{ Database };
+use to::database::Database;
 use to::errors::*;
 
 fn main() {

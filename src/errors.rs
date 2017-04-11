@@ -1,6 +1,6 @@
 use std;
 use bincode;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 
 
 static ISSUE_TEMPLATE: &'static str = indoc!("

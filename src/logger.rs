@@ -27,7 +27,8 @@ pub fn root(verbose: bool) -> slog::Logger {
     };
 
     let mutex = Mutex::new(filter).map(slog::Fuse);
-    let log = slog::Logger::root(mutex, o!(
+    let log = slog::Logger::root(mutex,
+                                 o!(
         "version" => env!("CARGO_PKG_VERSION")
     ));
 

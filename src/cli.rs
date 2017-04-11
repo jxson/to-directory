@@ -44,7 +44,9 @@ impl Options {
             _ => Action::Pathname,
         };
 
-        let config = matches.value_of("config").map(|value| String::from(value));
+        let config = matches
+            .value_of("config")
+            .map(|value| String::from(value));
 
         let name = matches.value_of("NAME").map(|value| String::from(value));
 

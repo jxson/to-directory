@@ -1,5 +1,5 @@
 use std::env;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 use std::fs;
 use std::io;
 
@@ -7,7 +7,7 @@ use errors::*;
 
 pub fn resolve(pathname: String) -> Result<PathBuf> {
     let mut absolute = try!(env::current_dir());
-            absolute.push(pathname);
+    absolute.push(pathname);
 
     let canonical = try!(absolute.canonicalize());
 
@@ -35,7 +35,7 @@ pub fn config(directory: Option<String>) -> Result<PathBuf> {
             let mut path = try!(home());
             path.push(".to");
             path
-        },
+        }
     };
 
     if let Err(err) = mkdirp(&path) {

@@ -21,12 +21,12 @@ pub type Bookmarks = BTreeMap<String, Bookmark>;
 impl Bookmark {
     pub fn new(name: String, directory: PathBuf) -> Bookmark {
         return Bookmark {
-            name: name,
-            directory: directory,
-            created_at: ::now(),
-            updated_at: ::now(),
-            accessed_at: None,
-        };
+                   name: name,
+                   directory: directory,
+                   created_at: ::now(),
+                   updated_at: ::now(),
+                   accessed_at: None,
+               };
     }
 }
 
@@ -38,7 +38,9 @@ pub struct Database {
 
 impl Database {
     pub fn open(mut path: PathBuf) -> Result<Database> {
-        if !path.ends_with("db") { path.push("db"); }
+        if !path.ends_with("db") {
+            path.push("db");
+        }
 
         let bookmarks = match File::open(&path) {
             Ok(file) => try!(hydrate(file)),
@@ -79,20 +81,20 @@ impl Database {
     pub fn delete(&mut self, key: String) -> Result<()> {
         match self.bookmarks.remove(&key) {
             None => bail!(ErrorKind::BookmarkNotFound(key)),
-            _ => {},
+            _ => {}
         };
 
         try!(self.close());
         Ok(())
     }
 
-    fn update(&mut self, key: String, path: PathBuf) -> Result<()>{
+    fn update(&mut self, key: String, path: PathBuf) -> Result<()> {
         match self.bookmarks.get_mut(&key) {
             Some(bookmark) => {
                 bookmark.directory = path;
                 bookmark.updated_at = ::now();
             }
-            None => bail!(ErrorKind::BookmarkNotFound(key))
+            None => bail!(ErrorKind::BookmarkNotFound(key)),
         }
 
         try!(self.close());
@@ -113,7 +115,7 @@ impl Database {
 
     fn close(&self) -> Result<()> {
         let mut options = OpenOptions::new();
-                options.write(true);
+        options.write(true);
 
         let file = match options.open(&self.location) {
             Ok(file) => file,
