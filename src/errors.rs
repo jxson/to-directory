@@ -3,7 +3,7 @@ use bincode;
 use std::path::PathBuf;
 
 
-static ISSUE_TEMPLATE: &'static str = indoc!("
+static ISSUE_TEMPLATE: &'static str = r#"
 
 File an issue at https://github.com/jxson/to-directory/issues.
 
@@ -12,7 +12,7 @@ Include the following information:
 * Operating system
 * Output from to --version
 
-");
+"#;
 
 error_chain! {
     errors {

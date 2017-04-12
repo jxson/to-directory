@@ -1,9 +1,6 @@
 // `error_chain!` recursion limit.
 #![recursion_limit = "1024"]
 
-#![feature(plugin)]
-#![plugin(indoc)]
-
 #[macro_use]
 extern crate clap;
 #[macro_use]
