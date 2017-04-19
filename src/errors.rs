@@ -16,8 +16,8 @@ Include the following information:
 
 error_chain! {
     errors {
-        UnknownHomeDirectory {
-            description("Unable to find $HOME")
+        BadConfigDirectory {
+            description("Unable to derive config")
             display("{}", ISSUE_TEMPLATE)
         }
 
@@ -29,6 +29,31 @@ error_chain! {
         BookmarkNotFound(name: String) {
             description("Bookmark not found")
             display("There is no entry for the bookmark \"{}\"", name)
+        }
+
+        FailedToOpenDatabase(path: PathBuf) {
+            description("Failed to open DB file")
+            display("Could not open: \n\"{:?}\"\n\n{}", path, ISSUE_TEMPLATE)
+        }
+
+        FailedToCloseDatabase(path: PathBuf) {
+            description("Failed to close DB file")
+            display("Could not close: \n\"{:?}\"\n\n{}", path, ISSUE_TEMPLATE)
+        }
+
+        InfoFlagRequiresName {
+            description("--info requires <name>")
+            display("For example: to -i foo")
+        }
+
+        DeleteFlagRequiresName {
+            description("--delete requires <name>")
+            display("For example: to -d foo")
+        }
+
+        ToRequiresName {
+            description("requires <name>")
+            display("For example: to foo")
         }
     }
 

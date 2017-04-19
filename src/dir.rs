@@ -1,13 +1,13 @@
 use std::env;
 use std::path::PathBuf;
-use std::fs;
-use std::io;
+// use std::fs;
+// use std::io;
 
 use errors::*;
 
-pub fn resolve(pathname: String) -> Result<PathBuf> {
+pub fn resolve(path: PathBuf) -> Result<PathBuf> {
     let mut absolute = try!(env::current_dir());
-    absolute.push(pathname);
+    absolute.push(path);
 
     let canonical = try!(absolute.canonicalize());
 
@@ -28,38 +28,39 @@ pub fn basename(path: &PathBuf) -> Result<String> {
     }
 }
 
-pub fn config(directory: Option<String>) -> Result<PathBuf> {
-    let path = match directory {
-        Some(_) => bail!("--config not yet supported, bump issue #13: https://git.io/vSKT8"),
-        None => {
-            let mut path = try!(home());
-            path.push(".to");
-            path
-        }
-    };
-
-    if let Err(err) = mkdirp(&path) {
-        return Err(err);
-    }
-
-    return Ok(path);
+/// Get the default config value.
+///
+/// ```
+/// use std::env;
+/// use dir;
+///
+/// let mut default = env::home_dir().unwrap();
+/// default.push(".to");
+///
+/// assert_eq!(dir::config(), Some(default));
+/// ```
+pub fn config() -> Option<PathBuf> {
+    env::home_dir().map(|mut home| {
+        home.push(".to");
+        home
+    })
 }
 
-fn home() -> Result<PathBuf> {
-    match env::home_dir() {
-        Some(value) => Ok(value),
-        None => bail!(ErrorKind::UnknownHomeDirectory),
-    }
-}
-
-fn mkdirp(directory: &PathBuf) -> Result<()> {
-    match fs::create_dir(&directory) {
-        Ok(_) => return Ok(()),
-        Err(ref err) if exists(err) => return Ok(()),
-        Err(err) => bail!(err),
-    }
-}
-
-fn exists(err: &io::Error) -> bool {
-    return err.kind() == io::ErrorKind::AlreadyExists;
-}
+// fn home() -> Result<PathBuf> {
+//     match env::home_dir() {
+//         Some(value) => Ok(value),
+//         None => bail!(ErrorKind::UnknownHomeDirectory),
+//     }
+// }
+//
+// fn mkdirp(directory: &PathBuf) -> Result<()> {
+//     match fs::create_dir(&directory) {
+//         Ok(_) => return Ok(()),
+//         Err(ref err) if exists(err) => return Ok(()),
+//         Err(err) => bail!(err),
+//     }
+// }
+//
+// fn exists(err: &io::Error) -> bool {
+//     return err.kind() == io::ErrorKind::AlreadyExists;
+// }

@@ -32,7 +32,7 @@ impl Bookmark {
 
 #[derive(Debug)]
 pub struct Database {
-    location: PathBuf,
+    pub location: PathBuf,
     bookmarks: Bookmarks,
 }
 
@@ -45,7 +45,7 @@ impl Database {
         let bookmarks = match File::open(&path) {
             Ok(file) => try!(hydrate(file)),
             Err(ref err) if notfound(err) => Bookmarks::new(),
-            Err(err) => bail!(err),
+            Err(_) => bail!(ErrorKind::FailedToOpenDatabase(path)),
         };
 
         let db = Database::new(path, bookmarks);
@@ -116,6 +116,8 @@ impl Database {
     fn close(&self) -> Result<()> {
         let mut options = OpenOptions::new();
         options.write(true);
+
+        println!("closing {:?}", self.location);
 
         let file = match options.open(&self.location) {
             Ok(file) => file,

@@ -1,4 +1,7 @@
 use clap;
+use std::path::PathBuf;
+
+use dir;
 
 pub fn run() -> Options {
     let matches = CLI::matches();
@@ -13,9 +16,9 @@ pub fn from(args: Vec<&str>) -> Options {
 #[derive(Debug, PartialEq)]
 pub enum Action {
     Delete,
-    Get,
+    Info,
     List,
-    Put,
+    Save,
     Pathname,
 }
 
@@ -25,37 +28,41 @@ pub struct Options {
     pub initialize: bool,
     pub action: Action,
     pub name: Option<String>,
-    pub pathname: String,
-    pub config: Option<String>,
+    pub path: Option<PathBuf>,
+    pub config: Option<PathBuf>,
 }
 
 impl Options {
     fn new(matches: clap::ArgMatches) -> Options {
-        let (delete, get, list, put) = (matches.is_present("delete"),
-                                        matches.is_present("get"),
+        let (delete, info, list, save) = (matches.is_present("delete"),
+                                        matches.is_present("info"),
                                         matches.is_present("list"),
-                                        matches.is_present("put"));
+                                        matches.is_present("save"));
 
-        let action = match (delete, get, list, put) {
+        let action = match (delete, info, list, save) {
             (true, _, _, _) => Action::Delete,
-            (_, true, _, _) => Action::Get,
+            (_, true, _, _) => Action::Info,
             (_, _, true, _) => Action::List,
-            (_, _, _, true) => Action::Put,
+            (_, _, _, true) => Action::Save,
             _ => Action::Pathname,
         };
 
         let config = matches
-            .value_of("config")
-            .map(|value| String::from(value));
+                .value_of("config")
+                .map(PathBuf::from)
+                .or_else(dir::config);
 
         let name = matches.value_of("NAME").map(|value| String::from(value));
 
-        let pathname = String::from(matches.value_of("DIRECTORY").unwrap_or(""));
+        let path = match matches.value_of("DIRECTORY") {
+            Some(value) => Some(PathBuf::from(value)),
+            None => None,
+        };
 
         Options {
             action: action,
             config: config,
-            pathname: pathname,
+            path: path,
             initialize: matches.is_present("initialize"),
             name: name,
             verbose: matches.is_present("verbose"),
@@ -85,7 +92,7 @@ impl<'a> CLI<'a> {
                 .long("config")
                 .short("c")
                 .help("Config dir, defaults to ~/.to")
-                .takes_value(false))
+                .takes_value(true))
 
             // Positional arguments.
             .arg(clap::Arg::with_name("NAME")
@@ -96,12 +103,12 @@ impl<'a> CLI<'a> {
                 .index(2))
 
             // Flags.
-            .arg(clap::Arg::with_name("get")
+            .arg(clap::Arg::with_name("info")
                 .long("info")
                 .short("i")
                 .help("Show bookmark information")
                 .takes_value(false))
-            .arg(clap::Arg::with_name("put")
+            .arg(clap::Arg::with_name("save")
                 .long("save")
                 .short("s")
                 .help("Save bookmark")

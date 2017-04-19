@@ -1,8 +1,10 @@
 extern crate to;
 #[macro_use]
 extern crate slog;
+#[macro_use]
 extern crate error_chain;
 
+use std::env;
 use to::{cli, dir, logger};
 use to::cli::Action;
 use to::database::Database;
@@ -42,6 +44,7 @@ fn run() -> Result<()> {
         "initialize" => options.initialize,
         "name" => format!("{:?}", options.name),
         "verbose" => options.verbose,
+        "config" => format!("{:?}", options.config)
     );
 
     // to-directory --init # echo the shell script for the `to` function.
@@ -50,33 +53,68 @@ fn run() -> Result<()> {
         return Ok(());
     }
 
-    let path = try!(dir::resolve(options.pathname));
+    // let path = try!(dir::resolve(options.pathname));
+    // let basename = try!(dir::basename(&path));
+    // let name = match options.name {
+    //     Some(value) => value,
+    //     None => basename,
+    // };
+
+    let config = match options.config.clone() {
+        Some(value) => value,
+        None => bail!(ErrorKind::BadConfigDirectory),
+    };
+
+    let store = try!(Database::open(config));
+    info!(log, "database opened: {:?}", store.location);
+
+    let result = match options.action {
+        Action::Info => info(store, options),
+        Action::Save => save(store, options),
+        Action::Delete => delete(store, options),
+        Action::List => list(store),
+        Action::Pathname => pathname(store, options),
+    };
+
+    result
+}
+
+fn info(store: Database, options: cli::Options) -> Result<()> {
+    let name = match options.name {
+        Some(value) => value,
+        None => bail!(ErrorKind::InfoFlagRequiresName),
+    };
+
+    let bookmark = try!(store.get(name));
+    println!("bookmark: {:?}", bookmark);
+    Ok(())
+}
+
+fn save(mut store: Database, options: cli::Options) -> Result<()> {
+    let path = match options.path {
+        Some(value) => try!(dir::resolve(value)),
+        None => try!(env::current_dir()),
+    };
+
     let basename = try!(dir::basename(&path));
     let name = match options.name {
         Some(value) => value,
         None => basename,
     };
 
-    let config = try!(dir::config(options.config));
-    info!(log, "config initialized"; "config" => config.to_str());
+    try!(store.put(name, path));
 
-    let mut store = try!(Database::open(config));
-    info!(log, "database opened");
-
-    let result = match options.action {
-        Action::Get => show(store, name),
-        Action::Put => store.put(name, path),
-        Action::Delete => store.delete(name),
-        Action::List => list(store),
-        Action::Pathname => pathname(store, name),
-    };
-
-    result
+    Ok(())
 }
 
-fn show(store: Database, name: String) -> Result<()> {
-    let bookmark = try!(store.get(name));
-    println!("bookmark: {:?}", bookmark);
+fn delete(mut store: Database, options: cli::Options) -> Result<()> {
+    let name = match options.name {
+        Some(value) => value,
+        None => bail!(ErrorKind::DeleteFlagRequiresName),
+    };
+
+    try!(store.delete(name));
+
     Ok(())
 }
 
@@ -88,7 +126,12 @@ fn list(store: Database) -> Result<()> {
     Ok(())
 }
 
-fn pathname(store: Database, name: String) -> Result<()> {
+fn pathname(store: Database, options: cli::Options) -> Result<()> {
+    let name = match options.name {
+        Some(value) => value,
+        None => bail!(ErrorKind::ToRequiresName),
+    };
+
     let bookmark = try!(store.get(name));
     let value = bookmark.directory.to_string_lossy();
     println!("{}", value);
