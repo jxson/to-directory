@@ -32,7 +32,7 @@ pub fn basename(path: &PathBuf) -> Result<String> {
 ///
 /// ```
 /// use std::env;
-/// use dir;
+/// use to::dir;
 ///
 /// let mut default = env::home_dir().unwrap();
 /// default.push(".to");

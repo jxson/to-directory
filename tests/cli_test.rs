@@ -34,19 +34,19 @@ fn cli_flag_verbose() {
 #[test]
 fn cli_flag_info() {
     let options = cli::from(vec!["--info"]);
-    assert_eq!(options.action, Action::Get);
+    assert_eq!(options.action, Action::Info);
 
     let options = cli::from(vec!["-i"]);
-    assert_eq!(options.action, Action::Get);
+    assert_eq!(options.action, Action::Info);
 }
 
 #[test]
 fn cli_flag_save() {
     let options = cli::from(vec!["--save"]);
-    assert_eq!(options.action, Action::Put);
+    assert_eq!(options.action, Action::Save);
 
     let options = cli::from(vec!["-s"]);
-    assert_eq!(options.action, Action::Put);
+    assert_eq!(options.action, Action::Save);
 }
 
 #[test]
