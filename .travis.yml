@@ -21,6 +21,7 @@ matrix:
 before_script:
 - export PATH="$PATH:$HOME/.cargo/bin"
 - which rustfmt || cargo install rustfmt
+- which gcc
 - sh tools/install-kcov.sh
 - cargo install cargo-kcov
 script:
