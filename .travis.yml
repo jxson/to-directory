@@ -1,6 +1,8 @@
 language: rust
 cache: cargo
 sudo: true
+os:
+  - linux
 addons:
   apt:
   packages:
