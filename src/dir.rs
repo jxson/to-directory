@@ -41,9 +41,9 @@ pub fn basename(path: &PathBuf) -> Result<String> {
 /// ```
 pub fn config() -> Option<PathBuf> {
     env::home_dir().map(|mut home| {
-        home.push(".to");
-        home
-    })
+                            home.push(".to");
+                            home
+                        })
 }
 
 // fn home() -> Result<PathBuf> {
