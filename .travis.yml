@@ -26,7 +26,8 @@ before_script:
 - export PATH="$PATH:$HOME/.cargo/bin"
 - which rustfmt || cargo install rustfmt
 - cargo install cargo-kcov
-- eval "$(cargo kcov --print-install-kcov-sh)"
+- cargo kcov --print-install-kcov-sh >> install-kcov.sh
+- sh install-kcov.sh
 script:
 - cargo fmt -- --write-mode=diff
 - cargo build
