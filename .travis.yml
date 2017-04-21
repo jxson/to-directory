@@ -1,5 +1,5 @@
 language: rust
-# cache: cargo
+cache: cargo
 dist: trusty
 sudo: true
 os:
@@ -27,6 +27,7 @@ before_script:
 - which rustfmt || cargo install rustfmt
 - sh tools/install-kcov.sh
 - cargo install cargo-kcov
+- eval "$(cargo kcov --print-install-kcov-sh)"
 script:
 - cargo fmt -- --write-mode=diff
 - cargo build
