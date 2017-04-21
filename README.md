@@ -3,7 +3,10 @@
 > A CLI utility for bookmarking directories with tab completion.
 
 [![Travis branch][travis-badge]][travis-url]
+[![Coverage Status][coveralls-badge]][coveralls-url]
 
+[coveralls-badge]: https://coveralls.io/repos/github/jxson/to-directory/badge.svg
+[coveralls-url]: https://coveralls.io/github/jxson/to-directory
 [travis-badge]: https://img.shields.io/travis/jxson/to-directory/master.svg?style=flat-square
 [travis-url]: https://travis-ci.org/jxson/to-directory
 

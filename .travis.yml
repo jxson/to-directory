@@ -32,4 +32,4 @@ script:
 - cargo fmt -- --write-mode=diff
 - cargo build
 - cargo test
-- cargo kcov --verbose --no-clean-rebuild --lib --coveralls
+- cargo kcov --verbose --coveralls
