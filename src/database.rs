@@ -13,20 +13,22 @@ pub struct Bookmark {
     pub directory: PathBuf,
     created_at: u64,
     pub updated_at: u64,
-    accessed_at: Option<u64>,
+    pub last_access: Option<u64>,
+    pub count: i64,
 }
 
 pub type Bookmarks = BTreeMap<String, Bookmark>;
 
 impl Bookmark {
     pub fn new(name: String, directory: PathBuf) -> Bookmark {
-        return Bookmark {
-                   name: name,
-                   directory: directory,
-                   created_at: ::now(),
-                   updated_at: ::now(),
-                   accessed_at: None,
-               };
+        Bookmark {
+            name: name,
+            directory: directory,
+            created_at: ::now(),
+            updated_at: ::now(),
+            last_access: None,
+            count: 0,
+        }
     }
 }
 
@@ -79,10 +81,9 @@ impl Database {
     }
 
     pub fn delete(&mut self, key: String) -> Result<()> {
-        match self.bookmarks.remove(&key) {
-            None => bail!(ErrorKind::BookmarkNotFound(key)),
-            _ => {}
-        };
+        if self.bookmarks.remove(&key).is_none() {
+            bail!(ErrorKind::BookmarkNotFound(key));
+        }
 
         try!(self.close());
         Ok(())
@@ -109,8 +110,8 @@ impl Database {
         Ok(())
     }
 
-    pub fn list<'a>(&'a self) -> Iter<'a, String, Bookmark> {
-        return self.bookmarks.iter();
+    pub fn list(&self) -> Iter<String, Bookmark> {
+        self.bookmarks.iter()
     }
 
     fn close(&self) -> Result<()> {

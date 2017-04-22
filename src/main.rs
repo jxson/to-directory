@@ -48,17 +48,10 @@ fn run() -> Result<()> {
     );
 
     // to-directory --init # echo the shell script for the `to` function.
-    if options.initialize == true {
+    if options.initialize {
         print!("{}", include_str!("to.sh"));
         return Ok(());
     }
-
-    // let path = try!(dir::resolve(options.pathname));
-    // let basename = try!(dir::basename(&path));
-    // let name = match options.name {
-    //     Some(value) => value,
-    //     None => basename,
-    // };
 
     let config = match options.config.clone() {
         Some(value) => value,
@@ -68,18 +61,16 @@ fn run() -> Result<()> {
     let store = try!(Database::open(config));
     info!(log, "database opened: {:?}", store.location);
 
-    let result = match options.action {
-        Action::Info => info(store, options),
+    match options.action {
+        Action::Info => info(&store, options),
         Action::Save => save(store, options),
         Action::Delete => delete(store, options),
-        Action::List => list(store),
-        Action::Pathname => pathname(store, options),
-    };
-
-    result
+        Action::List => list(&store),
+        Action::Pathname => pathname(&store, options),
+    }
 }
 
-fn info(store: Database, options: cli::Options) -> Result<()> {
+fn info(store: &Database, options: cli::Options) -> Result<()> {
     let name = match options.name {
         Some(value) => value,
         None => bail!(ErrorKind::InfoFlagRequiresName),
@@ -118,7 +109,7 @@ fn delete(mut store: Database, options: cli::Options) -> Result<()> {
     Ok(())
 }
 
-fn list(store: Database) -> Result<()> {
+fn list(store: &Database) -> Result<()> {
     for (key, bookmark) in store.list() {
         println!("list: {}: {:?}", key, bookmark);
     }
@@ -126,7 +117,7 @@ fn list(store: Database) -> Result<()> {
     Ok(())
 }
 
-fn pathname(store: Database, options: cli::Options) -> Result<()> {
+fn pathname(store: &Database, options: cli::Options) -> Result<()> {
     let name = match options.name {
         Some(value) => value,
         None => bail!(ErrorKind::ToRequiresName),

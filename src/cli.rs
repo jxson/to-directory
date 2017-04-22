@@ -22,7 +22,6 @@ pub enum Action {
     Pathname,
 }
 
-#[derive(Debug, PartialEq)]
 pub struct Options {
     pub verbose: bool,
     pub initialize: bool,
@@ -52,7 +51,7 @@ impl Options {
             .map(PathBuf::from)
             .or_else(dir::config);
 
-        let name = matches.value_of("NAME").map(|value| String::from(value));
+        let name = matches.value_of("NAME").map(String::from);
 
         let path = match matches.value_of("DIRECTORY") {
             Some(value) => Some(PathBuf::from(value)),

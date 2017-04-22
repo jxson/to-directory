@@ -11,7 +11,7 @@ pub fn resolve(path: PathBuf) -> Result<PathBuf> {
 
     let canonical = try!(absolute.canonicalize());
 
-    return Ok(canonical);
+    Ok(canonical)
 }
 
 pub fn basename(path: &PathBuf) -> Result<String> {

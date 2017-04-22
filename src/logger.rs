@@ -21,16 +21,17 @@ pub fn root(verbose: bool) -> slog::Logger {
 
     let stderr = std::io::stderr();
     let stream = slog_json::Json::new(stderr).add_key_value(map).build();
-    let filter = match verbose {
-        true => LevelFilter::new(stream, Level::Info),
-        false => LevelFilter::new(stream, Level::Error),
+
+    let filter = if verbose {
+        LevelFilter::new(stream, Level::Info)
+    } else {
+        LevelFilter::new(stream, Level::Error)
     };
 
     let mutex = Mutex::new(filter).map(slog::Fuse);
-    let log = slog::Logger::root(mutex,
+
+    slog::Logger::root(mutex,
                                  o!(
         "version" => env!("CARGO_PKG_VERSION")
-    ));
-
-    log
+    ))
 }
