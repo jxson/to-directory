@@ -25,11 +25,10 @@ matrix:
 before_script:
 - export PATH="$PATH:$HOME/.cargo/bin"
 - which rustfmt || cargo install rustfmt
-- which kcov || cargo install cargo-kcov
-- cargo kcov --print-install-kcov-sh >> install-kcov.sh
-- sh install-kcov.sh
+- which kcov || tools/install-cargo-kcov.sh
 script:
 - cargo fmt -- --write-mode=diff
 - cargo build
 - cargo test
-- cargo kcov --verbose --coveralls
+after_success:
+- tools/coveralls.sh
