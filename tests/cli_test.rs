@@ -11,6 +11,12 @@ fn cli_name() {
 }
 
 #[test]
+fn cli_name_trailing_slash() {
+    let options = cli::from(vec!["foo/"]);
+    assert_eq!(options.name, Some(String::from("foo")));
+}
+
+#[test]
 fn cli_flag_none() {
     let options = cli::run();
     assert_eq!(options.verbose, false);

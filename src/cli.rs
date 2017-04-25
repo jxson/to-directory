@@ -1,5 +1,6 @@
 use clap;
 use std::path::PathBuf;
+use std;
 
 use dir;
 
@@ -51,7 +52,7 @@ impl Options {
             .map(PathBuf::from)
             .or_else(dir::config);
 
-        let name = matches.value_of("NAME").map(String::from);
+        let name = matches.value_of("NAME").map(String::from).map(trim);
 
         let path = match matches.value_of("DIRECTORY") {
             Some(value) => Some(PathBuf::from(value)),
@@ -149,4 +150,19 @@ impl<'a> CLI<'a> {
         args.insert(0, "to");
         cli.app.get_matches_from(args)
     }
+}
+
+fn trim(name: String) -> String {
+    let slice = name.as_str();
+
+    slice.trim();
+    let last = slice.chars().last();
+
+    if last == Some(std::path::MAIN_SEPARATOR) {
+        let mut trimmed = String::from(slice);
+        trimmed.pop();
+        return trimmed;
+    }
+
+    String::from(slice)
 }
