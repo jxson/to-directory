@@ -130,6 +130,7 @@ impl Database {
 
         try!(dehydrate(file, &self.bookmarks));
         Ok(())
+
     }
 }
 
