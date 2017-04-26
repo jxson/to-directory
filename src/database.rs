@@ -1,22 +1,59 @@
-use time;
-use error::{ToResult, ToError};
 use std::path::PathBuf;
 use std::collections::BTreeMap;
 use std::collections::btree_map::Iter;
 use std::fs::{File, OpenOptions};
-use std::io::{BufReader, BufWriter, ErrorKind};
-use bincode::SizeLimit::Infinite;
-use bincode::rustc_serialize::{encode_into, decode_from};
+use std::io;
+use std::io::{BufReader, BufWriter};
+use bincode::{deserialize_from, serialize_into, Infinite};
+use errors::*;
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+pub struct Bookmark {
+    pub name: String,
+    pub directory: PathBuf,
+    created_at: u64,
+    pub updated_at: u64,
+    pub last_access: Option<u64>,
+    pub count: i64,
+}
 
 pub type Bookmarks = BTreeMap<String, Bookmark>;
 
+impl Bookmark {
+    pub fn new(name: String, directory: PathBuf) -> Bookmark {
+        Bookmark {
+            name: name,
+            directory: directory,
+            created_at: ::now(),
+            updated_at: ::now(),
+            last_access: None,
+            count: 0,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Database {
-    location: PathBuf,
+    pub location: PathBuf,
     bookmarks: Bookmarks,
 }
 
 impl Database {
+    pub fn open(mut path: PathBuf) -> Result<Database> {
+        if !path.ends_with("db") {
+            path.push("db");
+        }
+
+        let bookmarks = match File::open(&path) {
+            Ok(file) => try!(hydrate(file)),
+            Err(ref err) if notfound(err) => Bookmarks::new(),
+            Err(_) => bail!(ErrorKind::FailedToOpenDatabase(path)),
+        };
+
+        let db = Database::new(path, bookmarks);
+        Ok(db)
+    }
+
     fn new(location: PathBuf, bookmarks: Bookmarks) -> Database {
         Database {
             location: location,
@@ -24,66 +61,64 @@ impl Database {
         }
     }
 
-    pub fn open(directory: PathBuf) -> ToResult<Database> {
-        let bookmarks = match File::open(&directory) {
-            Ok(file) => {
-                let mut reader = BufReader::new(file);
-                let bookmarks: Bookmarks = match decode_from(&mut reader, Infinite) {
-                    Ok(value) => value,
-                    Err(err) => panic!("ERROR DECODING: {:?}", err),
-                };
-
-                bookmarks
-            },
-            Err(ref err) if err.kind() == ErrorKind::NotFound => Bookmarks::new(),
-            Err(err) => return Err(ToError::Io(err)),
+    pub fn get(&self, key: String) -> Result<&Bookmark> {
+        let bookmark = match self.bookmarks.get(&key) {
+            Some(bookmark) => bookmark,
+            None => bail!(ErrorKind::BookmarkNotFound(key)),
         };
 
-        return Ok(Database::new(directory, bookmarks));
+        Ok(bookmark)
     }
 
     // TODO: add a check to verify the db is open.
     // TODO: add check to verify value is a valid directory.
-    pub fn put(&mut self, key: String, value: PathBuf) -> ToResult<()> {
+    pub fn put(&mut self, key: String, value: PathBuf) -> Result<()> {
         if self.bookmarks.contains_key(&key) {
-            if let Some(bookmark) = self.bookmarks.get_mut(&key) {
-                bookmark.directory = value;
-                bookmark.updated_at = now();
-            }
+            self.update(key, value)
         } else {
-            let bookmark = Bookmark::new(key.clone(), value);
-            self.bookmarks.insert(key, bookmark);
+            self.create(key, value)
+        }
+    }
+
+    pub fn delete(&mut self, key: String) -> Result<()> {
+        if self.bookmarks.remove(&key).is_none() {
+            bail!(ErrorKind::BookmarkNotFound(key));
         }
 
-        match self.close() {
-            Ok(value) => return Ok(value),
-            Err(err) => panic!("Failed to close: {:?}", err),
-        };
+        try!(self.close());
+        Ok(())
     }
 
-    pub fn get(&self, key: &String) -> Option<&Bookmark> {
-        return self.bookmarks.get(key);
-    }
-
-    pub fn delete(&mut self, key: String) -> ToResult<()> {
-        match self.bookmarks.remove(&key) {
-            None => panic!("nothing to delete."),
-            _ => {},
+    fn update(&mut self, key: String, path: PathBuf) -> Result<()> {
+        match self.bookmarks.get_mut(&key) {
+            Some(bookmark) => {
+                bookmark.directory = path;
+                bookmark.updated_at = ::now();
+            }
+            None => bail!(ErrorKind::BookmarkNotFound(key)),
         }
 
-        match self.close() {
-            Ok(value) => return Ok(value),
-            Err(err) => panic!("Failed to close: {:?}", err),
-        };
+        try!(self.close());
+        Ok(())
     }
 
-    pub fn all<'a>(&'a self) -> Iter<'a, String, Bookmark> {
-        return self.bookmarks.iter();
+    fn create(&mut self, key: String, value: PathBuf) -> Result<()> {
+        let bookmark = Bookmark::new(key.clone(), value);
+        self.bookmarks.insert(key, bookmark);
+
+        try!(self.close());
+        Ok(())
     }
 
-    fn close(&self) -> ToResult<()> {
+    pub fn list(&self) -> Iter<String, Bookmark> {
+        self.bookmarks.iter()
+    }
+
+    fn close(&self) -> Result<()> {
         let mut options = OpenOptions::new();
-                options.write(true);
+        options.write(true);
+
+        println!("closing {:?}", self.location);
 
         let file = match options.open(&self.location) {
             Ok(file) => file,
@@ -93,37 +128,25 @@ impl Database {
             }
         };
 
-        let mut writer = BufWriter::new(file);
-        match encode_into(&self.bookmarks, &mut writer, Infinite) {
-            Ok(_) => {},
-            Err(err) => panic!("ERROR ECODING: {:?}", err),
-        }
+        try!(dehydrate(file, &self.bookmarks));
+        Ok(())
 
-        return Ok(());
     }
 }
 
-#[derive(Debug, RustcEncodable, RustcDecodable, PartialEq)]
-pub struct Bookmark {
-    pub name: String,
-    pub directory: PathBuf,
-    created_at: i64,
-    pub updated_at: i64,
-    accessed_at: Option<i64>,
+fn notfound(err: &io::Error) -> bool {
+    err.kind() == io::ErrorKind::NotFound
 }
 
-impl Bookmark {
-    pub fn new(name: String, directory: PathBuf) -> Bookmark {
-        return Bookmark {
-            name: name,
-            directory: directory,
-            created_at: now(),
-            updated_at: now(),
-            accessed_at: None,
-        };
-    }
+fn hydrate(file: File) -> Result<Bookmarks> {
+    let mut reader = BufReader::new(file);
+    let bookmarks: Bookmarks = try!(deserialize_from(&mut reader, Infinite));
+    Ok(bookmarks)
 }
 
-fn now() -> i64 {
-    return time::now_utc().to_timespec().sec;
+fn dehydrate(file: File, bookmarks: &Bookmarks) -> Result<()> {
+    let mut writer = BufWriter::new(file);
+
+    try!(serialize_into(&mut writer, &bookmarks, Infinite));
+    Ok(())
 }

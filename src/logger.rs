@@ -1,35 +1,37 @@
-extern crate log;
-extern crate env_logger;
+use slog;
+use slog_json;
+use std;
+use slog::{Drain, LevelFilter, Level};
+use std::sync::Mutex;
 
-use env_logger::LogBuilder;
-use error::{ToResult};
-use log::{LogRecord, LogLevelFilter};
+pub fn root(verbose: bool) -> slog::Logger {
+    let map = o!(
+        "name" => "to",
+        "ms" => slog::PushFnValue(move |_ : &slog::Record, ser| {
+            let ms = ::now();
+            ser.serialize(ms)
+        }),
+        "level" => slog::FnValue(move |record: &slog::Record| {
+            record.level().as_short_str()
+        }),
+        "msg" => slog::PushFnValue(move |record : &slog::Record, ser| {
+            ser.serialize(record.msg())
+        }),
+    );
 
-pub fn init(verbose: bool) -> ToResult<()> {
-    if verbose {
-        try!(init_verbose());
+    let stderr = std::io::stderr();
+    let stream = slog_json::Json::new(stderr).add_key_value(map).build();
+
+    let filter = if verbose {
+        LevelFilter::new(stream, Level::Info)
     } else {
-        try!(init_env_logger());
-    }
-
-    return Ok(());
-}
-
-fn init_verbose() -> ToResult<()> {
-    let format = |record: &LogRecord| {
-        format!("to: {} - {}", record.level(), record.args())
+        LevelFilter::new(stream, Level::Error)
     };
 
-    let mut builder = LogBuilder::new();
-    builder.format(format).filter(None, LogLevelFilter::Info);
+    let mutex = Mutex::new(filter).map(slog::Fuse);
 
-    try!(builder.init());
-
-    return Ok(());
-}
-
-fn init_env_logger() -> ToResult<()> {
-    try!(env_logger::init());
-
-    return Ok(());
+    slog::Logger::root(mutex,
+                       o!(
+        "version" => env!("CARGO_PKG_VERSION")
+    ))
 }

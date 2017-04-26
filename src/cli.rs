@@ -1,192 +1,168 @@
-use clap::{App, ArgMatches};
-use std::path::{PathBuf};
+use clap;
+use std::path::PathBuf;
+use std;
 
 use dir;
-use error::{ToResult, ToError};
 
-#[derive(Debug)]
-pub struct Request {
-    pub name: String,
-    pub directory: PathBuf,
-    pub action: Action,
-    pub verbose: bool,
+pub fn run() -> Options {
+    let matches = CLI::matches();
+    Options::new(matches)
 }
 
-impl Request {
-    fn new(name: &str, directory: PathBuf, action: Action, verbose: bool) -> Request {
-        Request {
-            name: String::from(name),
-            directory: directory,
-            action: action,
-            verbose: verbose,
-        }
-    }
-
-    pub fn get() -> ToResult<Request> {
-        let yaml = load_yaml!("cli.yml");
-        let app = App::from_yaml(yaml).version(crate_version!());
-        let matches = app.get_matches();
-
-        return Request::from(matches);
-    }
-
-    pub fn from(matches: ArgMatches) -> ToResult<Request> {
-        let pathname = matches.value_of("DIRECTORY").unwrap_or("");
-        let directory = try!(dir::resolve(pathname));
-
-        let basename = match dir::basename(&directory) {
-            Some(basename) => basename,
-            None => return Err(ToError::FailedToDeriveBasename),
-        };
-
-        let name = matches.value_of("NAME").unwrap_or(basename.as_str());
-
-        let action = Action::from(&matches);
-        let verbose = match matches.occurrences_of("verbose") {
-            0 => false,
-            _ => true,
-        };
-
-        let request = Request::new(name, directory, action, verbose);
-        return Ok(request);
-    }
+pub fn from(args: Vec<&str>) -> Options {
+    let matches = CLI::matches_from(args);
+    Options::new(matches)
 }
 
 #[derive(Debug, PartialEq)]
 pub enum Action {
-    Initialize,
-    Get,
-    Put,
-    List,
     Delete,
-    Last,
-    ChangeDirectory
+    Info,
+    List,
+    Save,
+    Pathname,
 }
 
-impl Action {
-    pub fn from(matches: &ArgMatches) -> Action {
-        let (get, put, list, delete, last, init) = (
-            matches.is_present("get"),
-            matches.is_present("put"),
-            matches.is_present("list"),
-            matches.is_present("delete"),
-            matches.value_of("NAME") == Some("-"),
-            matches.is_present("init"),
-        );
+pub struct Options {
+    pub verbose: bool,
+    pub initialize: bool,
+    pub action: Action,
+    pub name: Option<String>,
+    pub path: Option<PathBuf>,
+    pub config: Option<PathBuf>,
+}
 
-        let action = match (get, put, list, delete, last, init) {
-            (true, _, _, _, _, _) => Action::Get,
-            (_, true, _, _, _, _) => Action::Put,
-            (_, _, true, _, _, _) => Action::List,
-            (_, _, _, true, _, _) => Action::Delete,
-            (_, _, _, _, true, _) => Action::Last,
-            (_, _, _, _, _, true) => Action::Initialize,
-            _ => Action::ChangeDirectory,
+impl Options {
+    fn new(matches: clap::ArgMatches) -> Options {
+        let (delete, info, list, save) = (matches.is_present("delete"),
+                                          matches.is_present("info"),
+                                          matches.is_present("list"),
+                                          matches.is_present("save"));
+
+        let action = match (delete, info, list, save) {
+            (true, _, _, _) => Action::Delete,
+            (_, true, _, _) => Action::Info,
+            (_, _, true, _) => Action::List,
+            (_, _, _, true) => Action::Save,
+            _ => Action::Pathname,
         };
 
-        return action;
+        let config = matches
+            .value_of("config")
+            .map(PathBuf::from)
+            .or_else(dir::config);
+
+        let name = matches.value_of("NAME").map(String::from).map(trim);
+
+        let path = match matches.value_of("DIRECTORY") {
+            Some(value) => Some(PathBuf::from(value)),
+            None => None,
+        };
+
+        Options {
+            action: action,
+            config: config,
+            path: path,
+            initialize: matches.is_present("initialize"),
+            name: name,
+            verbose: matches.is_present("verbose"),
+        }
     }
 }
 
-#[cfg(test)]
-mod tests {
-    extern crate clap;
+struct CLI<'a> {
+    app: clap::App<'a, 'a>,
+}
 
-    use super::*;
-    use std::env;
-    use logger;
+impl<'a> CLI<'a> {
+    fn new() -> CLI<'a> {
+        let app = clap::App::new("to")
+            .version(crate_version!())
+            .author(crate_authors!())
+            .about("Bookmark directories")
 
-    fn setup() {
-        let _ = logger::init(false);
+            // User friendly info! output.
+            .arg(clap::Arg::with_name("verbose")
+                .long("verbose")
+                .short("v")
+                .help("Verbose log output")
+                .takes_value(false))
+
+            .arg(clap::Arg::with_name("config")
+                .long("config")
+                .short("c")
+                .help("Config dir, defaults to ~/.to")
+                .takes_value(true))
+
+            // Positional arguments.
+            .arg(clap::Arg::with_name("NAME")
+                .help("Name of the bookamrk")
+                .index(1))
+            .arg(clap::Arg::with_name("DIRECTORY")
+                .help("Path of the bookamrk")
+                .index(2))
+
+            // Flags.
+            .arg(clap::Arg::with_name("info")
+                .long("info")
+                .short("i")
+                .help("Show bookmark information")
+                .takes_value(false))
+            .arg(clap::Arg::with_name("save")
+                .long("save")
+                .short("s")
+                .help("Save bookmark")
+                .takes_value(false))
+            .arg(clap::Arg::with_name("delete")
+                .long("delete")
+                .short("d")
+                .help("Delete bookmark")
+                .takes_value(false)
+                .requires("NAME"))
+            .arg(clap::Arg::with_name("list")
+                .long("list")
+                .short("l")
+                .help("List all bookmarks")
+                .takes_value(false))
+            .arg(clap::Arg::with_name("initialize")
+                .long("init")
+                .help("Echo initialization script")
+                .takes_value(false)
+                .conflicts_with_all(&[
+                    "NAME",
+                    "DIRECTORY",
+                    "get",
+                    "put",
+                    "delete",
+                    "list",
+                ]));
+
+        CLI { app: app }
     }
 
-    fn run(mut args: Vec<&str>) -> Request {
+    fn matches() -> clap::ArgMatches<'a> {
+        let cli = CLI::new();
+        cli.app.get_matches()
+    }
+
+    fn matches_from(mut args: Vec<&str>) -> clap::ArgMatches {
+        let cli = CLI::new();
         args.insert(0, "to");
+        cli.app.get_matches_from(args)
+    }
+}
 
-        let yaml = load_yaml!("cli.yml");
-        let app = clap::App::from_yaml(yaml);
-        let matches = app.get_matches_from(args);
+fn trim(name: String) -> String {
+    let slice = name.as_str();
 
-        let request = Request::from(matches).expect("should not fail");
-        return request;
+    slice.trim();
+    let last = slice.chars().last();
+
+    if last == Some(std::path::MAIN_SEPARATOR) {
+        let mut trimmed = String::from(slice);
+        trimmed.pop();
+        return trimmed;
     }
 
-    #[test]
-    fn basic() {
-        let result = Request::get();
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_name() {
-        setup();
-        let cwd = env::current_dir().expect("should not fail");
-        let args = vec!["foo"];
-        let request = run(args);
-
-        assert_eq!(request.action, Action::ChangeDirectory);
-        assert_eq!(request.name, "foo");
-        assert_eq!(request.directory, cwd);
-    }
-
-    #[test]
-    fn no_flags() {
-        setup();
-        let request = run(vec![]);
-        assert_eq!(request.action, Action::ChangeDirectory);
-    }
-
-    #[test]
-    fn flag_info() {
-        let request = run(vec!["--info"]);
-        assert_eq!(request.action, Action::Get);
-
-        let request = run(vec!["-i"]);
-        assert_eq!(request.action, Action::Get);
-    }
-
-    #[test]
-    fn flag_save() {
-        let request = run(vec!["--save"]);
-        assert_eq!(request.action, Action::Put);
-
-        let request = run(vec!["-s"]);
-        assert_eq!(request.action, Action::Put);
-    }
-
-    #[test]
-    fn flag_list() {
-        let request = run(vec!["--list"]);
-        assert_eq!(request.action, Action::List);
-
-        let request = run(vec!["-l"]);
-        assert_eq!(request.action, Action::List);
-    }
-
-    #[test]
-    fn flag_delete() {
-        let request = run(vec!["foo", "--delete"]);
-        assert_eq!(request.action, Action::Delete);
-
-        let request = run(vec!["foo", "-d"]);
-        assert_eq!(request.action, Action::Delete);
-    }
-
-    #[test]
-    fn flag_verbose() {
-        let request = run(vec![]);
-        assert_eq!(request.verbose, false);
-
-        let request = run(vec!["--verbose"]);
-        assert_eq!(request.verbose, true);
-
-        let request = run(vec!["-v"]);
-        assert_eq!(request.verbose, true);
-    }
-
-    #[test]
-    fn last() {
-        let request = run(vec!["-"]);
-        assert_eq!(request.action, Action::Last);
-    }
+    String::from(slice)
 }

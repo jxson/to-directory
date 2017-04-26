@@ -1,106 +1,130 @@
+extern crate to;
 #[macro_use]
-extern crate clap;
-
+extern crate slog;
 #[macro_use]
-extern crate time;
+extern crate error_chain;
 
-#[macro_use]
-extern crate rustc_serialize;
-
-extern crate bincode;
-#[macro_use]
-extern crate log;
-extern crate env_logger;
-
-mod cli;
-mod dir;
-mod database;
-mod error;
-mod logger;
-
-use cli::{Action};
-use database::{Database};
-use error::{ToResult, ToError};
-
-macro_rules! exit {
-    ($fmt:expr) => {{
-        error!($fmt);
-        std::process::exit(1);
-    }};
-    ($fmt:expr, $($arg:tt)*) => {{
-        error!($fmt, $($arg)*);
-        std::process::exit(1);
-    }};
-}
+use std::env;
+use to::{cli, dir, logger};
+use to::cli::Action;
+use to::database::Database;
+use to::errors::*;
 
 fn main() {
-    let request = match cli::Request::get() {
-        Ok(value) => value,
-        Err(err) => exit!("Failed to parse CLI args.\n  {:?}", err),
-    };
+    // change the error output and logging based on the flags.
+    if let Err(ref e) = run() {
+        use std::io::Write;
+        let stderr = &mut ::std::io::stderr();
+        let stderr_errmsg = "Error writing to stderr";
 
-    if let Err(err) = logger::init(request.verbose) {
-        exit!("Error initializing logger.\n {:?}", err);
-    }
+        writeln!(stderr, "error: {}", e).expect(stderr_errmsg);
 
-    let db_path = match dir::db() {
-        Ok(value) => value,
-        Err(err) => exit!("Error configuring DB path.\n {:?}", err),
-    };
+        for e in e.iter().skip(1) {
+            writeln!(stderr, "caused by: {}", e).expect(stderr_errmsg);
+        }
 
-    let mut store = match Database::open(db_path) {
-        Ok(db) => db,
-        Err(err) => exit!("Failed to open DB.\n {:?}", err),
-    };
+        // The backtrace is not always generated. Try to run this example
+        // with `RUST_BACKTRACE=1`.
+        if let Some(backtrace) = e.backtrace() {
+            writeln!(stderr, "backtrace: {:?}", backtrace).expect(stderr_errmsg);
+        }
 
-    let result = match request.action {
-        Action::Initialize => init(),
-        Action::Get => show(store, request.name),
-        Action::Put => store.put(request.name, request.directory),
-        Action::Delete => store.delete(request.name),
-        Action::List => list(store),
-        Action::ChangeDirectory => cd(store, request),
-        _ => panic!("'{:?}' NOT IMPLEMENTED!", request.action),
-    };
-
-    match result {
-        Ok(_) => {},
-        Err(err) => exit!("Error: {}", err),
+        ::std::process::exit(1);
     }
 }
 
-fn cd(store: Database, request: cli::Request) -> ToResult<()> {
-    if let Some(bookmark) = store.get(&request.name) {
-        println!("{}", bookmark.directory.to_string_lossy());
+fn run() -> Result<()> {
+    let options = cli::run();
+    let log = logger::root(options.verbose);
+
+    debug!(log, "logger initialized");
+
+    info!(log, "parsed CLI options";
+        "action" => format!("{:?}", options.action),
+        "initialize" => options.initialize,
+        "name" => format!("{:?}", options.name),
+        "verbose" => options.verbose,
+        "config" => format!("{:?}", options.config)
+    );
+
+    // to-directory --init # echo the shell script for the `to` function.
+    if options.initialize {
+        print!("{}", include_str!("to.sh"));
         return Ok(());
-    } else {
-        return Err(ToError::BookmarkNotFound);
+    }
+
+    let config = match options.config.clone() {
+        Some(value) => value,
+        None => bail!(ErrorKind::BadConfigDirectory),
+    };
+
+    let store = try!(Database::open(config));
+    info!(log, "database opened: {:?}", store.location);
+
+    match options.action {
+        Action::Info => info(&store, options),
+        Action::Save => save(store, options),
+        Action::Delete => delete(store, options),
+        Action::List => list(&store),
+        Action::Pathname => pathname(&store, options),
     }
 }
 
-fn show(store: Database, key: String) -> ToResult<()> {
-    if let Some(bookmark) = store.get(&key) {
-        println!("info: {:?}", bookmark);
-        return Ok(());
-    } else {
-        return Err(ToError::BookmarkNotFound);
-    }
+fn info(store: &Database, options: cli::Options) -> Result<()> {
+    let name = match options.name {
+        Some(value) => value,
+        None => bail!(ErrorKind::InfoFlagRequiresName),
+    };
+
+    let bookmark = try!(store.get(name));
+    println!("bookmark: {:?}", bookmark);
+    Ok(())
 }
 
-fn list(store: Database) -> ToResult<()> {
-    for (key, bookmark) in store.all() {
+fn save(mut store: Database, options: cli::Options) -> Result<()> {
+    let path = match options.path {
+        Some(value) => try!(dir::resolve(value)),
+        None => try!(env::current_dir()),
+    };
+
+    let basename = try!(dir::basename(&path));
+    let name = match options.name {
+        Some(value) => value,
+        None => basename,
+    };
+
+    try!(store.put(name, path));
+
+    Ok(())
+}
+
+fn delete(mut store: Database, options: cli::Options) -> Result<()> {
+    let name = match options.name {
+        Some(value) => value,
+        None => bail!(ErrorKind::DeleteFlagRequiresName),
+    };
+
+    try!(store.delete(name));
+
+    Ok(())
+}
+
+fn list(store: &Database) -> Result<()> {
+    for (key, bookmark) in store.list() {
         println!("list: {}: {:?}", key, bookmark);
     }
 
-    return Ok(());
+    Ok(())
 }
 
-// to init: prints instructions
-// to init -: echos shell
-fn init() -> ToResult<()> {
-    let script = include_str!("to.sh");
+fn pathname(store: &Database, options: cli::Options) -> Result<()> {
+    let name = match options.name {
+        Some(value) => value,
+        None => bail!(ErrorKind::ToRequiresName),
+    };
 
-    print!("{}", script);
-
-    return Ok(());
+    let bookmark = try!(store.get(name));
+    let value = bookmark.directory.to_string_lossy();
+    println!("{}", value);
+    Ok(())
 }
