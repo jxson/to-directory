@@ -34,7 +34,7 @@ fn main() {
 }
 
 fn run() -> Result<()> {
-    let options = cli::run();
+    let options = cli::parse();
     let log = logger::root(options.verbose);
 
     debug!(log, "logger initialized");
@@ -44,7 +44,6 @@ fn run() -> Result<()> {
         "initialize" => options.initialize,
         "name" => format!("{:?}", options.name),
         "verbose" => options.verbose,
-        "config" => format!("{:?}", options.config)
     );
 
     // to-directory --init # echo the shell script for the `to` function.
@@ -53,11 +52,7 @@ fn run() -> Result<()> {
         return Ok(());
     }
 
-    let config = match options.config.clone() {
-        Some(value) => value,
-        None => bail!(ErrorKind::BadConfigDirectory),
-    };
-
+    let config = try!(options.config());
     let store = try!(Database::open(config));
     info!(log, "database opened: {:?}", store.location);
 

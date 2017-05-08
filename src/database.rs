@@ -47,7 +47,7 @@ impl Database {
         let bookmarks = match File::open(&path) {
             Ok(file) => try!(hydrate(file)),
             Err(ref err) if notfound(err) => Bookmarks::new(),
-            Err(_) => bail!(ErrorKind::FailedToOpenDatabase(path)),
+            Err(_) => bail!(ErrorKind::DBOpenError(path)),
         };
 
         let db = Database::new(path, bookmarks);
@@ -115,18 +115,13 @@ impl Database {
     }
 
     fn close(&self) -> Result<()> {
-        let mut options = OpenOptions::new();
-        options.write(true);
-
-        println!("closing {:?}", self.location);
-
-        let file = match options.open(&self.location) {
-            Ok(file) => file,
-            Err(_) => {
-                options.create(true);
-                try!(options.open(&self.location))
-            }
-        };
+        let path = PathBuf::from(&self.location);
+        let file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(&path)
+            .chain_err(|| ErrorKind::DBOpenError(path))?;
 
         try!(dehydrate(file, &self.bookmarks));
         Ok(())

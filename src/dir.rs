@@ -6,12 +6,18 @@ use std::path::PathBuf;
 use errors::*;
 
 pub fn resolve(path: PathBuf) -> Result<PathBuf> {
-    let mut absolute = try!(env::current_dir());
-    absolute.push(path);
+    let absolute = match env::current_dir() {
+        Ok(mut value) => {
+            value.push(path.to_path_buf());
+            value
+        }
+        Err(_) => bail!(ErrorKind::ResolveError(path)),
+    };
 
-    let canonical = try!(absolute.canonicalize());
-
-    Ok(canonical)
+    match absolute.canonicalize() {
+        Ok(value) => Ok(value),
+        Err(_) => bail!(ErrorKind::ResolveError(path)),
+    }
 }
 
 pub fn basename(path: &PathBuf) -> Result<String> {
@@ -28,16 +34,16 @@ pub fn basename(path: &PathBuf) -> Result<String> {
     }
 }
 
-/// Get the default config value.
+/// Get the default config directory.
 ///
 /// ```
 /// use std::env;
 /// use to::dir;
 ///
-/// let mut default = env::home_dir().unwrap();
-/// default.push(".to");
+/// let mut directory = env::home_dir().unwrap();
+///         directory.push(".to");
 ///
-/// assert_eq!(dir::config(), Some(default));
+/// assert_eq!(dir::config(), Some(directory));
 /// ```
 pub fn config() -> Option<PathBuf> {
     env::home_dir().map(|mut home| {
@@ -46,13 +52,6 @@ pub fn config() -> Option<PathBuf> {
                         })
 }
 
-// fn home() -> Result<PathBuf> {
-//     match env::home_dir() {
-//         Some(value) => Ok(value),
-//         None => bail!(ErrorKind::UnknownHomeDirectory),
-//     }
-// }
-//
 // fn mkdirp(directory: &PathBuf) -> Result<()> {
 //     match fs::create_dir(&directory) {
 //         Ok(_) => return Ok(()),
@@ -60,6 +59,14 @@ pub fn config() -> Option<PathBuf> {
 //         Err(err) => bail!(err),
 //     }
 // }
+
+// fn home() -> Result<PathBuf> {
+//     match env::home_dir() {
+//         Some(value) => Ok(value),
+//         None => bail!(ErrorKind::UnknownHomeDirectory),
+//     }
+// }
+//
 //
 // fn exists(err: &io::Error) -> bool {
 //     return err.kind() == io::ErrorKind::AlreadyExists;

@@ -3,8 +3,9 @@ use std::path::PathBuf;
 use std;
 
 use dir;
+use errors::*;
 
-pub fn run() -> Options {
+pub fn parse() -> Options {
     let matches = CLI::matches();
     Options::new(matches)
 }
@@ -29,7 +30,7 @@ pub struct Options {
     pub action: Action,
     pub name: Option<String>,
     pub path: Option<PathBuf>,
-    pub config: Option<PathBuf>,
+    config: Option<PathBuf>,
 }
 
 impl Options {
@@ -66,6 +67,13 @@ impl Options {
             initialize: matches.is_present("initialize"),
             name: name,
             verbose: matches.is_present("verbose"),
+        }
+    }
+
+    pub fn config(&self) -> Result<PathBuf> {
+        match self.config {
+            Some(ref value) => Ok(PathBuf::from(value)),
+            None => bail!(ErrorKind::BadConfigDirectory),
         }
     }
 }

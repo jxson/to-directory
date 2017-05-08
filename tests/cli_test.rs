@@ -18,7 +18,7 @@ fn cli_name_trailing_slash() {
 
 #[test]
 fn cli_flag_none() {
-    let options = cli::run();
+    let options = cli::from(vec![]);
     assert_eq!(options.verbose, false);
     assert_eq!(options.initialize, false);
     assert_eq!(options.name, None);
