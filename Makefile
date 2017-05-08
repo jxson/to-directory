@@ -10,7 +10,8 @@ PATH := "$(shell pwd)/target/debug:${PATH}"
 CARGO = $(shell which cargo)
 CARGO_OPTS =
 
-bats := "$(shell pwd)/deps/bats/bin/bats"
+bats := "$(shell pwd)/vendor/bats/bin/bats"
+bats_files := "$(shell find tests/integration -name '*.bats' )"
 
 PHONY: all
 all: build
@@ -20,9 +21,22 @@ build:
 	@$(CARGO) $(CARGO_OPTS) build
 
 PHONY: test
-test:
+test: test-rust test-bats
+
+PHONY: test-rust
+test-rust:
 	@echo "== running: cargo test"
 	@$(CARGO) $(CARGO_OPTS) test
+
+PHONY: test-bats
+test-bats: vendor/bats
+	@echo "== running: bats test/integration/*"
+	@$(bats) $(bats_files)
+
+vendor/bats:
+	mkdir -p $(dir $@)
+	@git clone https://github.com/sstephenson/bats.git $@
+	@touch $@
 
 # TODO(jxson): derive the directory correctly.
 # http://stackoverflow.com/questions/18136918/how-to-get-current-relative-directory-of-your-makefile
