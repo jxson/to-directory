@@ -3,49 +3,16 @@ use bincode;
 use std::path::PathBuf;
 
 
-static ISSUE_TEMPLATE: &'static str = r#"
-
-If you believe this error to be a bug please file an issue:
-
-https://github.com/jxson/to-directory/issues
-
-Include the following information:
-
-* Operating system
-* Output from to --version
-
-"#;
+static ISSUE_TEMPLATE: &'static str =
+    r#"
+=> If this is a bug please file an issue at: https://git.io/v96U6"#;
 
 error_chain! {
     errors {
-        DBOpenError(path: PathBuf) {
-            description("Failed to open bookmark DB.")
-            display("Failed to open db file: {:?}.{}", path, ISSUE_TEMPLATE)
-        }
-
-        ResolveError(path: PathBuf) {
-            description("Failed to resolve path.")
-            display("Failed to resolve {:?}.{}", path, ISSUE_TEMPLATE)
-        }
-
-        BadConfigDirectory {
-            description("Unable to derive config")
-            display("{}", ISSUE_TEMPLATE)
-        }
-
-        FailedToDeriveBasename(path: PathBuf) {
-            description("Failed to derive basename")
-            display("Could not derive basename from {:?}.{}", path, ISSUE_TEMPLATE)
-        }
-
+        // CLI errors.
         BookmarkNotFound(name: String) {
             description("Bookmark not found")
             display("There is no entry for the bookmark {}", name)
-        }
-
-        DBCloseError(path: PathBuf) {
-            description("Failed to close DB file")
-            display("Could not close: \n\"{:?}\"\n\n{}", path, ISSUE_TEMPLATE)
         }
 
         InfoFlagRequiresName {
@@ -61,6 +28,38 @@ error_chain! {
         ToRequiresName {
             description("requires <name>")
             display("For example: to foo")
+        }
+
+        // Bookmark DB errors.
+        DBOpenError(path: PathBuf) {
+            description("Failed to open bookmark DB.")
+            display("Failed to open db file: {:?}.{}", path, ISSUE_TEMPLATE)
+        }
+
+        DBCloseError(path: PathBuf) {
+            description("Failed to close DB file")
+            display("Could not close: \n\"{:?}\"\n\n{}", path, ISSUE_TEMPLATE)
+        }
+
+        // Directory and path errors.
+        ResolveError(path: PathBuf) {
+            description("Failed to resolve path.")
+            display("Failed to resolve {:?}.{}", path, ISSUE_TEMPLATE)
+        }
+
+        ConfigError {
+            description("Unable to derive config")
+            display("{}", ISSUE_TEMPLATE)
+        }
+
+        BasenameError(path: PathBuf) {
+            description("Failed to derive basename")
+            display("Could not derive basename from {:?}.{}", path, ISSUE_TEMPLATE)
+        }
+
+        DirError(path: PathBuf) {
+            description("Failed to create dir")
+            display("Failed to create {:?}.{}", path, ISSUE_TEMPLATE)
         }
     }
 

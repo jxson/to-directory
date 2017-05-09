@@ -73,7 +73,7 @@ impl Options {
     pub fn config(&self) -> Result<PathBuf> {
         match self.config {
             Some(ref value) => Ok(PathBuf::from(value)),
-            None => bail!(ErrorKind::BadConfigDirectory),
+            None => bail!(ErrorKind::ConfigError),
         }
     }
 }

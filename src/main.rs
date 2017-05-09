@@ -53,6 +53,12 @@ fn run() -> Result<()> {
     }
 
     let config = try!(options.config());
+
+    if !config.exists() {
+        println!("does not exist {:?}", config);
+        try!(dir::mkdirp(&config));
+    }
+
     let store = try!(Database::open(config));
     info!(log, "database opened: {:?}", store.location);
 

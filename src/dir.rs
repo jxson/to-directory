@@ -1,7 +1,7 @@
 use std::env;
 use std::path::PathBuf;
-// use std::fs;
-// use std::io;
+use std::fs;
+use std::io;
 
 use errors::*;
 
@@ -22,13 +22,13 @@ pub fn resolve(path: PathBuf) -> Result<PathBuf> {
 
 pub fn basename(path: &PathBuf) -> Result<String> {
     match path.file_stem() {
-        None => bail!(ErrorKind::FailedToDeriveBasename(path.to_path_buf())),
+        None => bail!(ErrorKind::BasenameError(path.to_path_buf())),
         Some(stem) => {
             let os_string = stem.to_os_string();
 
             match os_string.into_string() {
                 Ok(string) => Ok(string),
-                Err(_) => bail!(ErrorKind::FailedToDeriveBasename(path.to_path_buf())),
+                Err(_) => bail!(ErrorKind::BasenameError(path.to_path_buf())),
             }
         }
     }
@@ -52,22 +52,15 @@ pub fn config() -> Option<PathBuf> {
                         })
 }
 
-// fn mkdirp(directory: &PathBuf) -> Result<()> {
-//     match fs::create_dir(&directory) {
-//         Ok(_) => return Ok(()),
-//         Err(ref err) if exists(err) => return Ok(()),
-//         Err(err) => bail!(err),
-//     }
-// }
+/// A function that acts like `mkdir -p`.
+pub fn mkdirp(directory: &PathBuf) -> Result<()> {
+    match fs::create_dir(&directory) {
+        Ok(_) => Ok(()),
+        Err(ref err) if exists(err) => Ok(()),
+        Err(_) => bail!(ErrorKind::DirError(directory.to_path_buf())),
+    }
+}
 
-// fn home() -> Result<PathBuf> {
-//     match env::home_dir() {
-//         Some(value) => Ok(value),
-//         None => bail!(ErrorKind::UnknownHomeDirectory),
-//     }
-// }
-//
-//
-// fn exists(err: &io::Error) -> bool {
-//     return err.kind() == io::ErrorKind::AlreadyExists;
-// }
+fn exists(err: &io::Error) -> bool {
+    return err.kind() == io::ErrorKind::AlreadyExists;
+}

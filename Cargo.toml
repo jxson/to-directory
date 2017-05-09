@@ -27,3 +27,6 @@ serde = "0.9.11"
 serde_derive = "0.9.11"
 bincode = "1.0.0-alpha4"
 time = "0.1.36"
+
+[dev-dependencies]
+tempdir = "0.3.5"

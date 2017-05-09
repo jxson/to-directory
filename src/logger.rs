@@ -9,13 +9,13 @@ pub fn root(verbose: bool) -> slog::Logger {
         "name" => "to",
         "ms" => slog::PushFnValue(move |_ : &slog::Record, ser| {
             let ms = ::now();
-            ser.serialize(ms)
+            ser.emit(ms)
         }),
         "level" => slog::FnValue(move |record: &slog::Record| {
             record.level().as_short_str()
         }),
         "msg" => slog::PushFnValue(move |record : &slog::Record, ser| {
-            ser.serialize(record.msg())
+            ser.emit(record.msg())
         }),
     );
 

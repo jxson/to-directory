@@ -5,6 +5,7 @@ use std::fs::{File, OpenOptions};
 use std::io;
 use std::io::{BufReader, BufWriter};
 use bincode::{deserialize_from, serialize_into, Infinite};
+
 use errors::*;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
@@ -116,6 +117,7 @@ impl Database {
 
     fn close(&self) -> Result<()> {
         let path = PathBuf::from(&self.location);
+
         let file = OpenOptions::new()
             .read(true)
             .write(true)
