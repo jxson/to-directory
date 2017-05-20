@@ -161,7 +161,7 @@ impl<'a> CLI<'a> {
 }
 
 fn trim(name: String) -> String {
-    let slice = name.as_str();
+    let slice = name.as_str().to_lowercase();
 
     slice.trim();
     let last = slice.chars().last();

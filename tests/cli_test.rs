@@ -19,6 +19,13 @@ fn cli_name_trailing_slash() {
 }
 
 #[test]
+fn cli_name_case_insensitive() {
+    let options = cli::from(vec!["Foo"]);
+    assert_eq!(options.action, Action::Pathname);
+    assert_eq!(options.name, Some(String::from("foo")));
+}
+
+#[test]
 fn cli_flag_none() {
     let options = cli::from(vec![]);
     assert_eq!(options.verbose, false);
