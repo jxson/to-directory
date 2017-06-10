@@ -1,14 +1,18 @@
 extern crate to;
 #[macro_use]
-extern crate slog;
-#[macro_use]
 extern crate error_chain;
+#[macro_use]
+extern crate prettytable;
+#[macro_use]
+extern crate slog;
 
+use prettytable::Table;
 use std::env;
 use to::{cli, dir, logger};
 use to::cli::Action;
 use to::database::Database;
 use to::errors::*;
+
 
 fn main() {
     // change the error output and logging based on the flags.
@@ -111,9 +115,14 @@ fn delete(mut store: Database, options: cli::Options) -> Result<()> {
 }
 
 fn list(store: &Database) -> Result<()> {
-    for (key, bookmark) in store.list() {
-        println!("list: {}: {:?}", key, bookmark);
+    let mut table = Table::new();
+    table.add_row(row![ b => "Name", "Path", "Count"]);
+
+    for (name, bookmark) in store.list() {
+        table.add_row(row![name, bookmark.directory.to_string_lossy(), bookmark.count]);
     }
+
+    table.printstd();
 
     Ok(())
 }

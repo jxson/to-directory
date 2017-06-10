@@ -17,15 +17,16 @@ name = "to"
 path = "src/lib.rs"
 
 [dependencies]
+bincode = "1.0.0-alpha4"
 chrono = "0.3.0"
 clap = "2.20.0"
 error-chain = "0.7.2"
+prettytable-rs = "^0.6"
+serde = "0.9.11"
+serde_derive = "0.9.11"
 slog = "~2.0.0-1"
 slog-json = "~2.0.0-1"
 slog-stream = "1.2.0"
-serde = "0.9.11"
-serde_derive = "0.9.11"
-bincode = "1.0.0-alpha4"
 time = "0.1.36"
 
 [dev-dependencies]
