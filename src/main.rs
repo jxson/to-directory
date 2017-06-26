@@ -119,11 +119,8 @@ fn list(store: &Database) -> Result<()> {
     table.add_row(row![ b => "Name", "Path", "Count"]);
 
     for (name, bookmark) in store.list() {
-        table.add_row(row![
-            name,
-            bookmark.directory.to_string_lossy(),
-            bookmark.count,
-        ]);
+        let path = bookmark.directory.to_string_lossy();
+        table.add_row(row![name, path, bookmark.count]);
     }
 
     table.printstd();

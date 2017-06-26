@@ -4,7 +4,6 @@ extern crate tempdir;
 use tempdir::TempDir;
 use to::cli;
 use to::cli::Action;
-use to::errors::*;
 
 #[test]
 fn cli_name() {

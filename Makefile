@@ -53,3 +53,7 @@ install:
 PHONY: fmt
 fmt:
 	@$(CARGO) $(CARGO_OPTS) fmt -- --write-mode overwrite
+
+PHONY: lint
+lint:
+	@$(CARGO) $(CARGO_OPTS) clippy
