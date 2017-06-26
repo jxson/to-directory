@@ -35,10 +35,12 @@ pub struct Options {
 
 impl Options {
     fn new(matches: clap::ArgMatches) -> Options {
-        let (delete, info, list, save) = (matches.is_present("delete"),
-                                          matches.is_present("info"),
-                                          matches.is_present("list"),
-                                          matches.is_present("save"));
+        let (delete, info, list, save) = (
+            matches.is_present("delete"),
+            matches.is_present("info"),
+            matches.is_present("list"),
+            matches.is_present("save"),
+        );
 
         let action = match (delete, info, list, save) {
             (true, _, _, _) => Action::Delete,
@@ -48,10 +50,9 @@ impl Options {
             _ => Action::Pathname,
         };
 
-        let config = matches
-            .value_of("config")
-            .map(PathBuf::from)
-            .or_else(dir::config);
+        let config = matches.value_of("config").map(PathBuf::from).or_else(
+            dir::config,
+        );
 
         let name = matches.value_of("NAME").map(String::from).map(trim);
 

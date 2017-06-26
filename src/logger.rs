@@ -5,7 +5,8 @@ use slog::{Drain, LevelFilter, Level};
 use std::sync::Mutex;
 
 pub fn root(verbose: bool) -> slog::Logger {
-    let map = o!(
+    let map =
+        o!(
         "name" => "to",
         "ms" => slog::PushFnValue(move |_ : &slog::Record, ser| {
             let ms = ::now();
@@ -30,8 +31,10 @@ pub fn root(verbose: bool) -> slog::Logger {
 
     let mutex = Mutex::new(filter).map(slog::Fuse);
 
-    slog::Logger::root(mutex,
-                       o!(
+    slog::Logger::root(
+        mutex,
+        o!(
         "version" => env!("CARGO_PKG_VERSION")
-    ))
+    ),
+    )
 }

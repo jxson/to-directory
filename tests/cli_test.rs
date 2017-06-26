@@ -4,6 +4,7 @@ extern crate tempdir;
 use tempdir::TempDir;
 use to::cli;
 use to::cli::Action;
+use to::errors::*;
 
 #[test]
 fn cli_name() {
@@ -91,7 +92,8 @@ fn cli_flag_init() {
 #[test]
 fn cli_flag_config() {
     let dir = TempDir::new("config").unwrap();
-    let path = dir.path().to_str().unwrap();
-    let options = cli::from(vec!["--config", path]);
+    let config_dir = dir.path().to_str().unwrap();
+    let options = cli::from(vec!["--config", config_dir]);
+
     assert_eq!(options.config().unwrap(), dir.path());
 }
