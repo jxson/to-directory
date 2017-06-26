@@ -38,7 +38,9 @@ fn main() {
 }
 
 fn run() -> Result<()> {
-    let options = cli::parse();
+    let matches = cli::app().get_matches();
+    let options = cli::Options::new(matches);
+
     let log = logger::root(options.verbose);
 
     debug!(log, "logger initialized");

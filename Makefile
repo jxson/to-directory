@@ -21,7 +21,7 @@ build:
 	@$(CARGO) $(CARGO_OPTS) build
 
 PHONY: test
-test: test-rust test-bats
+test: lint test-rust test-bats
 
 PHONY: test-rust
 test-rust:

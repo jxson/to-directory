@@ -5,14 +5,67 @@ use std;
 use dir;
 use errors::*;
 
-pub fn parse() -> Options {
-    let matches = CLI::matches();
-    Options::new(matches)
-}
+pub fn app<'a, 'b>() -> clap::App<'a, 'b> {
+    return clap::App::new("to")
+        .version(crate_version!())
+        .author(crate_authors!())
+        .about("Bookmark directories")
 
-pub fn from(args: Vec<&str>) -> Options {
-    let matches = CLI::matches_from(args);
-    Options::new(matches)
+        // User friendly info! output.
+        .arg(clap::Arg::with_name("verbose")
+            .long("verbose")
+            .short("v")
+            .help("Verbose log output")
+            .takes_value(false))
+
+        .arg(clap::Arg::with_name("config")
+            .long("config")
+            .short("c")
+            .help("Config dir, defaults to ~/.to")
+            .takes_value(true))
+
+        // Positional arguments.
+        .arg(clap::Arg::with_name("NAME")
+            .help("Name of the bookamrk")
+            .index(1))
+        .arg(clap::Arg::with_name("DIRECTORY")
+            .help("Path of the bookamrk")
+            .index(2))
+
+        // Flags.
+        .arg(clap::Arg::with_name("info")
+            .long("info")
+            .short("i")
+            .help("Show bookmark information")
+            .takes_value(false))
+        .arg(clap::Arg::with_name("save")
+            .long("save")
+            .short("s")
+            .help("Save bookmark")
+            .takes_value(false))
+        .arg(clap::Arg::with_name("delete")
+            .long("delete")
+            .short("d")
+            .help("Delete bookmark")
+            .takes_value(false)
+            .requires("NAME"))
+        .arg(clap::Arg::with_name("list")
+            .long("list")
+            .short("l")
+            .help("List all bookmarks")
+            .takes_value(false))
+        .arg(clap::Arg::with_name("initialize")
+            .long("init")
+            .help("Echo initialization script")
+            .takes_value(false)
+            .conflicts_with_all(&[
+                "NAME",
+                "DIRECTORY",
+                "get",
+                "put",
+                "delete",
+                "list",
+            ]));
 }
 
 #[derive(Debug, PartialEq)]
@@ -34,7 +87,7 @@ pub struct Options {
 }
 
 impl Options {
-    fn new(matches: clap::ArgMatches) -> Options {
+    pub fn new(matches: clap::ArgMatches) -> Options {
         let (delete, info, list, save) = (
             matches.is_present("delete"),
             matches.is_present("info"),
@@ -79,88 +132,6 @@ impl Options {
     }
 }
 
-struct CLI<'a> {
-    app: clap::App<'a, 'a>,
-}
-
-impl<'a> CLI<'a> {
-    fn new() -> CLI<'a> {
-        let app = clap::App::new("to")
-            .version(crate_version!())
-            .author(crate_authors!())
-            .about("Bookmark directories")
-
-            // User friendly info! output.
-            .arg(clap::Arg::with_name("verbose")
-                .long("verbose")
-                .short("v")
-                .help("Verbose log output")
-                .takes_value(false))
-
-            .arg(clap::Arg::with_name("config")
-                .long("config")
-                .short("c")
-                .help("Config dir, defaults to ~/.to")
-                .takes_value(true))
-
-            // Positional arguments.
-            .arg(clap::Arg::with_name("NAME")
-                .help("Name of the bookamrk")
-                .index(1))
-            .arg(clap::Arg::with_name("DIRECTORY")
-                .help("Path of the bookamrk")
-                .index(2))
-
-            // Flags.
-            .arg(clap::Arg::with_name("info")
-                .long("info")
-                .short("i")
-                .help("Show bookmark information")
-                .takes_value(false))
-            .arg(clap::Arg::with_name("save")
-                .long("save")
-                .short("s")
-                .help("Save bookmark")
-                .takes_value(false))
-            .arg(clap::Arg::with_name("delete")
-                .long("delete")
-                .short("d")
-                .help("Delete bookmark")
-                .takes_value(false)
-                .requires("NAME"))
-            .arg(clap::Arg::with_name("list")
-                .long("list")
-                .short("l")
-                .help("List all bookmarks")
-                .takes_value(false))
-            .arg(clap::Arg::with_name("initialize")
-                .long("init")
-                .help("Echo initialization script")
-                .takes_value(false)
-                .conflicts_with_all(&[
-                    "NAME",
-                    "DIRECTORY",
-                    "get",
-                    "put",
-                    "delete",
-                    "list",
-                ]));
-
-        CLI { app: app }
-    }
-
-    fn matches() -> clap::ArgMatches<'a> {
-        let cli = CLI::new();
-        cli.app.get_matches()
-    }
-
-    fn matches_from(mut args: Vec<&str>) -> clap::ArgMatches {
-        let cli = CLI::new();
-        args.insert(0, "to");
-        cli.app.get_matches_from(args)
-    }
-}
-
 fn trim(name: String) -> String {
     let slice = name.as_str().to_lowercase();
 
@@ -174,4 +145,12 @@ fn trim(name: String) -> String {
     }
 
     String::from(slice)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn it_works() {}
 }
