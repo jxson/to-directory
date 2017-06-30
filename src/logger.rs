@@ -1,40 +1,34 @@
+use cli;
+use slog_async;
+use slog_term;
 use slog;
-use slog_json;
+use slog::{Drain, Level};
 use std;
-use slog::{Drain, LevelFilter, Level};
-use std::sync::Mutex;
 
-pub fn root(verbose: bool) -> slog::Logger {
-    let map =
-        o!(
-        "name" => "to",
-        "ms" => slog::PushFnValue(move |_ : &slog::Record, ser| {
-            let ms = ::now();
-            ser.emit(ms)
-        }),
-        "level" => slog::FnValue(move |record: &slog::Record| {
-            record.level().as_short_str()
-        }),
-        "msg" => slog::PushFnValue(move |record : &slog::Record, ser| {
-            ser.emit(record.msg())
-        }),
-    );
+pub fn root(options: &cli::Options) -> slog::Logger {
+    let decorator = slog_term::PlainDecorator::new(std::io::stdout());
+    let drain = slog_term::CompactFormat::new(decorator).build().fuse();
+    let drain = slog_async::Async::new(drain).build().fuse();
 
-    let stderr = std::io::stderr();
-    let stream = slog_json::Json::new(stderr).add_key_value(map).build();
-
-    let filter = if verbose {
-        LevelFilter::new(stream, Level::Info)
+    let level = if options.verbose {
+        Level::Info
     } else {
-        LevelFilter::new(stream, Level::Error)
+        Level::Error
     };
 
-    let mutex = Mutex::new(filter).map(slog::Fuse);
+    let drain = drain.filter_level(level).fuse();
 
-    slog::Logger::root(
-        mutex,
-        o!(
-        "version" => env!("CARGO_PKG_VERSION")
-    ),
-    )
+    let log = slog::Logger::root(
+        drain,
+        o!("name" => "to", "version" => env!("CARGO_PKG_VERSION")),
+    );
+
+    info!(log, "parsed CLI options";
+        "action" => format!("{:?}", options.action),
+        "initialize" => options.initialize,
+        "name" => format!("{:?}", options.name),
+        "verbose" => options.verbose,
+    );
+
+    log
 }

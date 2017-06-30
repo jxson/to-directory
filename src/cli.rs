@@ -6,7 +6,7 @@ use dir;
 use errors::*;
 
 pub fn app<'a, 'b>() -> clap::App<'a, 'b> {
-    return clap::App::new("to")
+    clap::App::new("to")
         .version(crate_version!())
         .author(crate_authors!())
         .about("Bookmark directories")
@@ -65,7 +65,7 @@ pub fn app<'a, 'b>() -> clap::App<'a, 'b> {
                 "put",
                 "delete",
                 "list",
-            ]));
+            ]))
 }
 
 #[derive(Debug, PartialEq)]
@@ -152,10 +152,10 @@ impl Options {
 // Will convert to lowercase, remove whitespace, and trim trailing slashes sometimes added by tab
 // completion.
 fn normalize(string: &str) -> String {
-    return string
+    string
         .trim()
         .trim_right_matches(std::path::MAIN_SEPARATOR)
-        .to_lowercase();
+        .to_lowercase()
 }
 
 #[cfg(test)]

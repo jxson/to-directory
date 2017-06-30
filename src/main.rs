@@ -13,10 +13,13 @@ use to::cli::Action;
 use to::database::Database;
 use to::errors::*;
 
-
 fn main() {
+    let matches = cli::app().get_matches();
+    let options = cli::Options::new(matches);
+    let log = logger::root(&options);
+
     // change the error output and logging based on the flags.
-    if let Err(ref e) = run() {
+    if let Err(ref e) = run(log, options) {
         use std::io::Write;
         let stderr = &mut ::std::io::stderr();
         let stderr_errmsg = "Error writing to stderr";
@@ -37,22 +40,8 @@ fn main() {
     }
 }
 
-fn run() -> Result<()> {
-    let matches = cli::app().get_matches();
-    let options = cli::Options::new(matches);
-
-    let log = logger::root(options.verbose);
-
-    debug!(log, "logger initialized");
-
-    info!(log, "parsed CLI options";
-        "action" => format!("{:?}", options.action),
-        "initialize" => options.initialize,
-        "name" => format!("{:?}", options.name),
-        "verbose" => options.verbose,
-    );
-
-    // to-directory --init # echo the shell script for the `to` function.
+fn run(log: slog::Logger, options: cli::Options) -> Result<()> {
+    // --init # echo the shell script for the `to` function.
     if options.initialize {
         print!("{}", include_str!("to.sh"));
         return Ok(());

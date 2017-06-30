@@ -62,5 +62,5 @@ pub fn mkdirp(directory: &PathBuf) -> Result<()> {
 }
 
 fn exists(err: &io::Error) -> bool {
-    return err.kind() == io::ErrorKind::AlreadyExists;
+    err.kind() == io::ErrorKind::AlreadyExists
 }

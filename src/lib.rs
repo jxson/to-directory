@@ -9,8 +9,8 @@ extern crate error_chain;
 extern crate serde_derive;
 #[macro_use]
 extern crate slog;
-extern crate slog_json;
-extern crate chrono;
+extern crate slog_term;
+extern crate slog_async;
 extern crate bincode;
 extern crate time;
 
@@ -20,7 +20,8 @@ pub mod errors;
 pub mod logger;
 pub mod database;
 
-// Get the current time in milliseconds.
+/// Get the current time in milliseconds.
+///
 pub fn now() -> u64 {
     let timespec = time::now_utc().to_timespec();
     let seconds = timespec.sec as u64 * 1000;
