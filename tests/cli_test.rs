@@ -1,9 +1,9 @@
 extern crate to;
-extern crate tempdir;
 
-use tempdir::TempDir;
-use to::cli;
+use std::path::PathBuf;
 use to::cli::Action;
+use to::cli;
+use to::dir;
 
 fn run(mut args: Vec<&str>) -> cli::Options {
     args.insert(0, "to");
@@ -12,27 +12,7 @@ fn run(mut args: Vec<&str>) -> cli::Options {
 }
 
 #[test]
-fn cli_name() {
-    let options = run(vec!["foo"]);
-    assert_eq!(options.action, Action::Pathname);
-    assert_eq!(options.name, Some(String::from("foo")));
-}
-
-#[test]
-fn cli_name_trailing_slash() {
-    let options = run(vec!["foo/"]);
-    assert_eq!(options.name, Some(String::from("foo")));
-}
-
-#[test]
-fn cli_name_case_insensitive() {
-    let options = run(vec!["Foo"]);
-    assert_eq!(options.action, Action::Pathname);
-    assert_eq!(options.name, Some(String::from("foo")));
-}
-
-#[test]
-fn cli_flag_none() {
+fn cli_defaults() {
     let options = run(vec![]);
     assert_eq!(options.verbose, false);
     assert_eq!(options.initialize, false);
@@ -41,9 +21,28 @@ fn cli_flag_none() {
 }
 
 #[test]
+fn cli_name() {
+    let options = run(vec!["foo"]);
+    assert_eq!(options.action, Action::Pathname);
+    assert_eq!(options.name, Some(String::from("foo")));
+
+    let options = run(vec!["Foo"]);
+    assert_eq!(options.action, Action::Pathname);
+    assert_eq!(options.name, Some(String::from("foo")));
+
+    let options = run(vec!["foo/"]);
+    assert_eq!(options.name, Some(String::from("foo")));
+}
+
+#[test]
+fn cli_path() {
+    let options = run(vec!["project", "~/code/project"]);
+    assert_eq!(options.path, Some(PathBuf::from("~/code/project")));
+}
+
+#[test]
 fn cli_flag_verbose() {
-    let options = run(vec![]);
-    assert_eq!(options.verbose, false);
+    assert_eq!(run(vec![]).verbose, false);
 
     let options = run(vec!["--verbose"]);
     assert_eq!(options.verbose, true);
@@ -89,16 +88,16 @@ fn cli_flag_delete() {
 }
 
 #[test]
-fn cli_flag_init() {
-    let options = run(vec!["--init"]);
-    assert_eq!(options.initialize, true);
+fn cli_flag_config_default() {
+    let options = run(vec![]);
+    let config = options.config();
+    assert_eq!(config.ok(), dir::config());
 }
 
 #[test]
 fn cli_flag_config() {
-    let dir = TempDir::new("config").unwrap();
-    let config_dir = dir.path().to_str().unwrap();
-    let options = run(vec!["--config", config_dir]);
+    let options = run(vec!["--config", "~/whatever"]);
+    let config = options.config().unwrap();
 
-    assert_eq!(options.config().unwrap(), dir.path());
+    assert_eq!(config, PathBuf::from("~/whatever"));
 }

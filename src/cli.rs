@@ -87,6 +87,21 @@ pub struct Options {
 }
 
 impl Options {
+    /// Creates a new instance of Options from clap::ArgMatches.
+    ///
+    /// # Examples:
+    ///
+    /// ```
+    /// use to::cli;
+    ///
+    /// let matches = cli::app().get_matches_from(vec![""]);
+    /// let options = cli::Options::new(matches);
+    ///
+    /// assert_eq!(options.verbose, false);
+    /// assert_eq!(options.initialize, false);
+    /// assert_eq!(options.name, None);
+    /// assert_eq!(options.action, cli::Action::Pathname);
+    /// ```
     pub fn new(matches: clap::ArgMatches) -> Options {
         let (delete, info, list, save) = (
             matches.is_present("delete"),
@@ -107,7 +122,7 @@ impl Options {
             dir::config,
         );
 
-        let name = matches.value_of("NAME").map(String::from).map(trim);
+        let name = matches.value_of("NAME").map(normalize);
 
         let path = match matches.value_of("DIRECTORY") {
             Some(value) => Some(PathBuf::from(value)),
@@ -132,19 +147,15 @@ impl Options {
     }
 }
 
-fn trim(name: String) -> String {
-    let slice = name.as_str().to_lowercase();
-
-    slice.trim();
-    let last = slice.chars().last();
-
-    if last == Some(std::path::MAIN_SEPARATOR) {
-        let mut trimmed = String::from(slice);
-        trimmed.pop();
-        return trimmed;
-    }
-
-    String::from(slice)
+// Normalize CLI text input.
+//
+// Will convert to lowercase, remove whitespace, and trim trailing slashes sometimes added by tab
+// completion.
+fn normalize(string: &str) -> String {
+    return string
+        .trim()
+        .trim_right_matches(std::path::MAIN_SEPARATOR)
+        .to_lowercase();
 }
 
 #[cfg(test)]
@@ -152,5 +163,9 @@ mod test {
     use super::*;
 
     #[test]
-    fn it_works() {}
+    fn normalize_name_input() {
+        assert_eq!(normalize("trim-trailing/"), "trim-trailing");
+        assert_eq!(normalize("LOWERCASE"), "lowercase");
+        assert_eq!(normalize("  spaces "), "spaces");
+    }
 }
