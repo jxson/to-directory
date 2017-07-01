@@ -3,16 +3,15 @@ cache:
   - cargo
   - apt
 dist: trusty
+sudo: true
 # https://blog.travis-ci.com/2017-06-21-trusty-updates-2017-Q2-launch
 group: deprecated-2017Q2
-sudo: true
 addons:
   apt:
     packages:
     - libcurl4-openssl-dev
     - libelf-dev
     - libdw-dev
-    - libbfd-dev
     - binutils-dev
     - libiberty-dev
     - g++
