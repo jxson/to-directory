@@ -1,9 +1,9 @@
 extern crate to;
 
+use std::env;
 use std::path::PathBuf;
 use to::cli::Action;
 use to::cli;
-use to::dir;
 
 fn run(mut args: Vec<&str>) -> cli::Options {
     args.insert(0, "to");
@@ -90,14 +90,18 @@ fn cli_flag_delete() {
 #[test]
 fn cli_flag_config_default() {
     let options = run(vec![]);
-    let config = options.config();
-    assert_eq!(config.ok(), dir::config());
+    let expected = env::home_dir().map(|mut home| {
+        home.push(".to");
+        home
+    });
+
+    assert_eq!(options.config, expected);
 }
 
 #[test]
 fn cli_flag_config() {
     let options = run(vec!["--config", "~/whatever"]);
-    let config = options.config().unwrap();
+    let expected = PathBuf::from("~/whatever");
 
-    assert_eq!(config, PathBuf::from("~/whatever"));
+    assert_eq!(options.config, Some(expected));
 }

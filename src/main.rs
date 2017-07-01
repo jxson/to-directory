@@ -6,6 +6,7 @@ extern crate prettytable;
 #[macro_use]
 extern crate slog;
 
+use std::path::PathBuf;
 use prettytable::Table;
 use std::env;
 use to::{cli, dir, logger};
@@ -47,7 +48,11 @@ fn run(log: slog::Logger, options: cli::Options) -> Result<()> {
         return Ok(());
     }
 
-    let config = try!(options.config());
+    let config = match options.config {
+        // NOTE(jxson): I am sure there is a better way to do this but I am a n00b.
+        Some(ref value) => PathBuf::from(value),
+        None => bail!(ErrorKind::ConfigError),
+    };
 
     if !config.exists() {
         println!("does not exist {:?}", config);

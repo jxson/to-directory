@@ -1,6 +1,7 @@
 use clap;
-use std::path::PathBuf;
 use std;
+use std::env;
+use std::path::PathBuf;
 
 use dir;
 use errors::*;
@@ -83,7 +84,7 @@ pub struct Options {
     pub action: Action,
     pub name: Option<String>,
     pub path: Option<PathBuf>,
-    config: Option<PathBuf>,
+    pub config: Option<PathBuf>,
 }
 
 impl Options {
@@ -118,10 +119,6 @@ impl Options {
             _ => Action::Pathname,
         };
 
-        let config = matches.value_of("config").map(PathBuf::from).or_else(
-            dir::config,
-        );
-
         let name = matches.value_of("NAME").map(normalize);
 
         let path = match matches.value_of("DIRECTORY") {
@@ -131,18 +128,11 @@ impl Options {
 
         Options {
             action: action,
-            config: config,
+            config: config(matches.value_of("config")),
             path: path,
             initialize: matches.is_present("initialize"),
             name: name,
             verbose: matches.is_present("verbose"),
-        }
-    }
-
-    pub fn config(&self) -> Result<PathBuf> {
-        match self.config {
-            Some(ref value) => Ok(PathBuf::from(value)),
-            None => bail!(ErrorKind::ConfigError),
         }
     }
 }
@@ -156,6 +146,15 @@ fn normalize(string: &str) -> String {
         .trim()
         .trim_right_matches(std::path::MAIN_SEPARATOR)
         .to_lowercase()
+}
+
+fn config(value: Option<&str>) -> Option<PathBuf> {
+    value.map(PathBuf::from).or_else(|| {
+        env::home_dir().map(|mut home| {
+            home.push(".to");
+            home
+        })
+    })
 }
 
 #[cfg(test)]
