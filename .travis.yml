@@ -4,8 +4,6 @@ cache:
   - apt
 dist: trusty
 sudo: true
-os:
-  - linux
 addons:
   apt:
     packages:
