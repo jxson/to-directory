@@ -34,24 +34,6 @@ pub fn basename(path: &PathBuf) -> Result<String> {
     }
 }
 
-/// Get the default config directory.
-///
-/// ```
-/// use std::env;
-/// use to::dir;
-///
-/// let mut directory = env::home_dir().unwrap();
-///         directory.push(".to");
-///
-/// assert_eq!(dir::config(), Some(directory));
-/// ```
-pub fn config() -> Option<PathBuf> {
-    env::home_dir().map(|mut home| {
-        home.push(".to");
-        home
-    })
-}
-
 /// A function that acts like `mkdir -p`.
 pub fn mkdirp(directory: &PathBuf) -> Result<()> {
     match fs::create_dir(&directory) {
