@@ -10,7 +10,6 @@ addons:
     - libcurl4-openssl-dev
     - libelf-dev
     - libdw-dev
-    - libbfd-dev
     - binutils-dev
     - libiberty-dev
     - g++
