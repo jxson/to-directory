@@ -21,6 +21,12 @@ fn cli_defaults() {
 }
 
 #[test]
+fn cli_flag_init() {
+    let options = run(vec!["--init"]);
+    assert_eq!(options.initialize, true);
+}
+
+#[test]
 fn cli_name() {
     let options = run(vec!["foo"]);
     assert_eq!(options.action, Action::Pathname);
