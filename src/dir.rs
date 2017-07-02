@@ -46,3 +46,31 @@ pub fn mkdirp(directory: &PathBuf) -> Result<()> {
 fn exists(err: &io::Error) -> bool {
     err.kind() == io::ErrorKind::AlreadyExists
 }
+
+#[cfg(test)]
+mod test {
+    extern crate tempdir;
+
+    use super::*;
+    use self::tempdir::TempDir;
+
+    #[test]
+    fn mkdirp_existing() {
+        let path = TempDir::new("mkdirp-test")
+            .map(|dir| dir.into_path())
+            .unwrap();
+        assert!(path.exists());
+        assert!(mkdirp(&path).is_ok());
+        assert!(path.exists());
+    }
+
+    #[test]
+    fn mkdirp_non_existing() {
+        let path = TempDir::new("existing-dir")
+            .map(|dir| dir.into_path().join("non-existing"))
+            .unwrap();
+        assert_eq!(path.exists(), false);
+        assert!(mkdirp(&path).is_ok());
+        assert!(path.exists());
+    }
+}
