@@ -16,8 +16,7 @@ use to::errors::*;
 
 fn main() {
     let matches = cli::app().get_matches();
-    let options = cli::Options::new(matches);
-    let log = logger::root(&options);
+    let (log, options) = setup(matches);
 
     // change the error output and logging based on the flags.
     if let Err(ref e) = run(log, options) {
@@ -39,6 +38,14 @@ fn main() {
 
         ::std::process::exit(1);
     }
+}
+
+/// Reduces boilerplate, returns a working logger and parsed CLI options.
+fn setup(matches: cli::ArgMatches) -> (logger::Logger, cli::Options) {
+    let options = cli::Options::new(matches);
+    let log = logger::root(&options);
+
+    (log, options)
 }
 
 fn run(log: slog::Logger, options: cli::Options) -> Result<()> {
@@ -134,4 +141,20 @@ fn pathname(store: &Database, options: cli::Options) -> Result<()> {
     let value = bookmark.directory.to_string_lossy();
     println!("{}", value);
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn setup_is_ok() {
+        let matches = cli::app().get_matches_from(vec!["to"]);
+        let (_, options) = setup(matches);
+
+        assert_eq!(options.verbose, false);
+        assert_eq!(options.initialize, false);
+        assert_eq!(options.name, None);
+        assert_eq!(options.action, Action::Pathname);
+    }
 }

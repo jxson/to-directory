@@ -5,6 +5,8 @@ use slog;
 use slog::{Drain, Level};
 use std;
 
+pub use slog::Logger;
+
 pub fn root(options: &cli::Options) -> slog::Logger {
     let decorator = slog_term::PlainDecorator::new(std::io::stdout());
     let drain = slog_term::CompactFormat::new(decorator).build().fuse();

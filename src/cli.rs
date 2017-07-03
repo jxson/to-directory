@@ -3,6 +3,8 @@ use std;
 use std::env;
 use std::path::PathBuf;
 
+pub use clap::ArgMatches;
+
 pub fn app<'a, 'b>() -> clap::App<'a, 'b> {
     clap::App::new("to")
         .version(crate_version!())
