@@ -145,11 +145,16 @@ fn pathname(store: &Database, options: cli::Options) -> Result<()> {
 
 #[cfg(test)]
 mod test {
+    extern crate tempdir;
+
     use super::*;
+    use self::tempdir::TempDir;
 
     #[test]
     fn setup_is_ok() {
-        let matches = cli::app().get_matches_from(vec!["to"]);
+        let tmp = TempDir::new("blah").unwrap();
+        let config = tmp.path().to_str().unwrap();
+        let matches = cli::app().get_matches_from(vec!["to", "--config", config]);
         let (_, options) = setup(matches);
 
         assert_eq!(options.verbose, false);
