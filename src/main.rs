@@ -19,7 +19,7 @@ fn main() {
     let (log, options) = setup(matches);
 
     // change the error output and logging based on the flags.
-    if let Err(ref e) = run(log, options) {
+    if let Err(ref e) = run(&log, options) {
         use std::io::Write;
         let stderr = &mut ::std::io::stderr();
         let stderr_errmsg = "Error writing to stderr";
@@ -48,7 +48,7 @@ fn setup(matches: cli::ArgMatches) -> (logger::Logger, cli::Options) {
     (log, options)
 }
 
-fn run(log: slog::Logger, options: cli::Options) -> Result<()> {
+fn run(log: &slog::Logger, options: cli::Options) -> Result<()> {
     // --init # echo the shell script for the `to` function.
     if options.initialize {
         print!("{}", include_str!("to.sh"));
@@ -156,5 +156,13 @@ mod test {
         assert_eq!(options.initialize, false);
         assert_eq!(options.name, None);
         assert_eq!(options.action, Action::Pathname);
+    }
+
+    #[test]
+    fn run_with_init_flag() {
+        let matches = cli::app().get_matches_from(vec!["to", "--init"]);
+        let (log, options) = setup(matches);
+        let result = run(&log, options);
+        assert!(result.is_ok());
     }
 }
