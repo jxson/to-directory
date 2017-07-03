@@ -36,10 +36,10 @@ pub fn basename(path: &PathBuf) -> Result<String> {
 
 /// A function that acts like `mkdir -p`.
 pub fn mkdirp(directory: &PathBuf) -> Result<()> {
-    match fs::create_dir(&directory) {
+    match fs::create_dir_all(&directory) {
         Ok(_) => Ok(()),
         Err(ref err) if exists(err) => Ok(()),
-        Err(_) => bail!(ErrorKind::DirError(directory.to_path_buf())),
+        Err(_) => bail!(ErrorKind::CreateDirError(directory.to_path_buf())),
     }
 }
 
@@ -72,5 +72,15 @@ mod test {
         assert_eq!(path.exists(), false);
         assert!(mkdirp(&path).is_ok());
         assert!(path.exists());
+    }
+
+    #[test]
+    fn mkdirp_error() {
+        let path = PathBuf::from("/should-not-have-premissions");
+        let err = mkdirp(&path).err().unwrap();
+        assert_eq!(
+            format!("{}", ErrorKind::CreateDirError(path)),
+            format!("{}", err)
+        );
     }
 }

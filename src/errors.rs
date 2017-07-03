@@ -57,7 +57,7 @@ error_chain! {
             display("Could not derive basename from {:?}.{}", path, ISSUE_TEMPLATE)
         }
 
-        DirError(path: PathBuf) {
+        CreateDirError(path: PathBuf) {
             description("Failed to create dir")
             display("Failed to create {:?}.{}", path, ISSUE_TEMPLATE)
         }
