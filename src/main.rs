@@ -170,4 +170,13 @@ mod test {
         let result = run(&log, options);
         assert!(result.is_ok());
     }
+
+    #[test]
+    fn run_with_bad_config() {
+        let matches = cli::app().get_matches_from(vec!["to"]);
+        let (log, mut options) = setup(matches);
+        options.config = None;
+        let err = run(&log, options).err().unwrap();
+        assert_eq!(format!("{}", err), format!("{}", ErrorKind::ConfigError {}));
+    }
 }
