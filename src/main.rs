@@ -62,7 +62,6 @@ fn run(log: &slog::Logger, options: cli::Options) -> Result<()> {
     };
 
     if !config.exists() {
-        println!("does not exist {:?}", config);
         try!(dir::mkdirp(&config));
     }
 
@@ -178,5 +177,19 @@ mod test {
         options.config = None;
         let err = run(&log, options).err().unwrap();
         assert_eq!(format!("{}", err), format!("{}", ErrorKind::ConfigError {}));
+    }
+
+    #[test]
+    fn run_with_new_config() {
+        let matches = cli::app().get_matches_from(vec!["to", "-s"]);
+        let (log, mut options) = setup(matches);
+        let config = TempDir::new("existing-dir")
+            .map(|dir| dir.into_path().join("non-existing"))
+            .unwrap();
+
+        assert!(!config.exists());
+        options.config = Some(PathBuf::from(&config));
+        run(&log, options).unwrap();
+        assert!(config.exists());
     }
 }
