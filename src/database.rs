@@ -62,13 +62,8 @@ impl Database {
         }
     }
 
-    pub fn get(&self, key: String) -> Result<&Bookmark> {
-        let bookmark = match self.bookmarks.get(&key) {
-            Some(bookmark) => bookmark,
-            None => bail!(ErrorKind::BookmarkNotFound(key)),
-        };
-
-        Ok(bookmark)
+    pub fn get(&self, key: &String) -> Option<&Bookmark> {
+        self.bookmarks.get(key)
     }
 
     // TODO: add a check to verify the db is open.

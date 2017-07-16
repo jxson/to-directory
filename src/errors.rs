@@ -47,6 +47,16 @@ error_chain! {
             display("Failed to resolve {:?}.{}", path, ISSUE_TEMPLATE)
         }
 
+        PathDoesNotExistError(path: PathBuf) {
+            description("Path does not exist.")
+            display("Path does not exist {:?}.{}", path, ISSUE_TEMPLATE)
+        }
+
+        CurrentDirectoryError(path: PathBuf) {
+            description("Failed to derive current directory.")
+            display("Failed to get current dir when resolving {:?}.{}", path, ISSUE_TEMPLATE)
+        }
+
         ConfigError {
             description("Unable to derive config")
             display("{}", ISSUE_TEMPLATE)

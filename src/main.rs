@@ -8,7 +8,6 @@ extern crate slog;
 
 use std::path::PathBuf;
 use prettytable::Table;
-use std::env;
 use to::{cli, dir, logger};
 use to::cli::Action;
 use to::database::Database;
@@ -16,10 +15,9 @@ use to::errors::*;
 
 fn main() {
     let matches = cli::app().get_matches();
-    let (log, options) = setup(matches);
 
     // change the error output and logging based on the flags.
-    if let Err(ref e) = run(&log, options) {
+    if let Err(ref e) = run(matches) {
         use std::io::Write;
         let stderr = &mut ::std::io::stderr();
         let stderr_errmsg = "Error writing to stderr";
@@ -40,78 +38,39 @@ fn main() {
     }
 }
 
-/// Reduces boilerplate, returns a working logger and parsed CLI options.
-fn setup(matches: cli::ArgMatches) -> (logger::Logger, cli::Options) {
-    let options = cli::Options::new(matches);
+fn run(matches: cli::ArgMatches) -> Result<()> {
+    let options = try!(cli::Options::new(matches));
     let log = logger::root(&options);
 
-    (log, options)
-}
-
-fn run(log: &slog::Logger, options: cli::Options) -> Result<()> {
     // --init # echo the shell script for the `to` function.
     if options.initialize {
         print!("{}", include_str!("to.sh"));
         return Ok(());
     }
 
-    let config = match options.config {
-        // NOTE(jxson): I am sure there is a better way to do this but I am a n00b.
-        Some(ref value) => PathBuf::from(value),
-        None => bail!(ErrorKind::ConfigError),
-    };
+    let config = PathBuf::from(&options.config);
 
     if !config.exists() {
         try!(dir::mkdirp(&config));
     }
 
-    let store = try!(Database::open(config));
+    let mut store = try!(Database::open(config));
     info!(log, "database opened: {:?}", store.location);
 
     match options.action {
         Action::Info => info(&store, options),
-        Action::Save => save(store, options),
-        Action::Delete => delete(store, options),
+        Action::Save => store.put(options.name, options.path),
+        Action::Delete => store.delete(options.name),
         Action::List => list(&store),
         Action::Pathname => pathname(&store, options),
     }
 }
 
 fn info(store: &Database, options: cli::Options) -> Result<()> {
-    let name = match options.name {
-        Some(value) => value,
-        None => bail!(ErrorKind::InfoFlagRequiresName),
-    };
-
-    let bookmark = try!(store.get(name));
-    println!("bookmark: {:?}", bookmark);
-    Ok(())
-}
-
-fn save(mut store: Database, options: cli::Options) -> Result<()> {
-    let path = match options.path {
-        Some(value) => try!(dir::resolve(value)),
-        None => try!(env::current_dir()),
-    };
-
-    let basename = try!(dir::basename(&path));
-    let name = match options.name {
-        Some(value) => value,
-        None => basename,
-    };
-
-    try!(store.put(name, path));
-
-    Ok(())
-}
-
-fn delete(mut store: Database, options: cli::Options) -> Result<()> {
-    let name = match options.name {
-        Some(value) => value,
-        None => bail!(ErrorKind::DeleteFlagRequiresName),
-    };
-
-    try!(store.delete(name));
+    match store.get(&options.name) {
+        Some(bookmark) => println!("bookmark: {:?}", bookmark),
+        None => println!("Not found"),
+    }
 
     Ok(())
 }
@@ -131,14 +90,13 @@ fn list(store: &Database) -> Result<()> {
 }
 
 fn pathname(store: &Database, options: cli::Options) -> Result<()> {
-    let name = match options.name {
-        Some(value) => value,
-        None => bail!(ErrorKind::ToRequiresName),
+    let value = match store.get(&options.name) {
+        Some(bookmark) => bookmark.directory.to_string_lossy(),
+        None => bail!(ErrorKind::BookmarkNotFound(options.name)),
     };
 
-    let bookmark = try!(store.get(name));
-    let value = bookmark.directory.to_string_lossy();
     println!("{}", value);
+
     Ok(())
 }
 
@@ -149,47 +107,42 @@ mod test {
     use super::*;
     use self::tempdir::TempDir;
 
-    #[test]
-    fn setup_is_ok() {
-        let tmp = TempDir::new("blah").unwrap();
-        let config = tmp.path().to_str().unwrap();
-        let matches = cli::app().get_matches_from(vec!["to", "--config", config]);
-        let (_, options) = setup(matches);
+    fn get_matches(values: Vec<&str>) -> cli::ArgMatches {
+        let path = TempDir::new("test-config").map(|temp| temp.into_path());
+        let config = path.as_ref()
+            .map(|path| path.to_str().unwrap())
+            .unwrap();
 
-        assert_eq!(options.verbose, false);
-        assert_eq!(options.initialize, false);
-        assert_eq!(options.name, None);
-        assert_eq!(options.action, Action::Pathname);
+        let mut args = vec!["to", "--config", config];
+        args.extend(values);
+
+        cli::app().get_matches_from(args)
     }
 
     #[test]
-    fn run_with_init_flag() {
-        let matches = cli::app().get_matches_from(vec!["to", "--init"]);
-        let (log, options) = setup(matches);
-        let result = run(&log, options);
+    fn run_is_ok() {
+        let matches = get_matches(vec!["--info"]);
+        let result = run(matches);
         assert!(result.is_ok());
     }
 
     #[test]
-    fn run_with_bad_config() {
-        let matches = cli::app().get_matches_from(vec!["to"]);
-        let (log, mut options) = setup(matches);
-        options.config = None;
-        let err = run(&log, options).err().unwrap();
-        assert_eq!(format!("{}", err), format!("{}", ErrorKind::ConfigError {}));
+    fn run_with_init_flag() {
+        let matches = get_matches(vec!["--init"]);
+        let result = run(matches);
+        assert!(result.is_ok());
     }
 
     #[test]
-    fn run_with_new_config() {
-        let matches = cli::app().get_matches_from(vec!["to", "-s"]);
-        let (log, mut options) = setup(matches);
+    fn run_with_non_existing_config() {
         let config = TempDir::new("existing-dir")
             .map(|dir| dir.into_path().join("non-existing"))
             .unwrap();
+        let config_value = config.to_str().unwrap();
+        let matches = cli::app().get_matches_from(vec!["to", "--config", config_value, "--info"]);
 
         assert!(!config.exists());
-        options.config = Some(PathBuf::from(&config));
-        run(&log, options).unwrap();
+        assert!(run(matches).is_ok());
         assert!(config.exists());
     }
 }

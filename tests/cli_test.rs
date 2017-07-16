@@ -1,23 +1,36 @@
 extern crate to;
+extern crate tempdir;
 
 use std::env;
 use std::path::PathBuf;
 use to::cli::Action;
 use to::cli;
+use tempdir::TempDir;
+
 
 fn run(mut args: Vec<&str>) -> cli::Options {
     args.insert(0, "to");
     let matches = cli::app().get_matches_from(args);
-    cli::Options::new(matches)
+    cli::Options::new(matches).unwrap()
 }
 
 #[test]
 fn cli_defaults() {
+    let config_dir = env::home_dir()
+        .map(|mut home| {
+                 home.push(".to");
+                 home
+             })
+        .unwrap();
+    let current_dir = env::current_dir().unwrap();
     let options = run(vec![]);
+
     assert_eq!(options.verbose, false);
     assert_eq!(options.initialize, false);
-    assert_eq!(options.name, None);
+    assert_eq!(options.name, to::dir::basename(&current_dir).unwrap());
+    assert_eq!(options.path, current_dir);
     assert_eq!(options.action, Action::Pathname);
+    assert_eq!(options.config, config_dir);
 }
 
 #[test]
@@ -30,20 +43,24 @@ fn cli_flag_init() {
 fn cli_name() {
     let options = run(vec!["foo"]);
     assert_eq!(options.action, Action::Pathname);
-    assert_eq!(options.name, Some(String::from("foo")));
+    assert_eq!(options.name, String::from("foo"));
 
     let options = run(vec!["Foo"]);
     assert_eq!(options.action, Action::Pathname);
-    assert_eq!(options.name, Some(String::from("foo")));
+    assert_eq!(options.name, String::from("foo"));
 
     let options = run(vec!["foo/"]);
-    assert_eq!(options.name, Some(String::from("foo")));
+    assert_eq!(options.name, String::from("foo"));
 }
 
 #[test]
 fn cli_path() {
-    let options = run(vec!["project", "~/code/project"]);
-    assert_eq!(options.path, Some(PathBuf::from("~/code/project")));
+    let temp = TempDir::new("test-project")
+        .map(|dir| dir.into_path())
+        .unwrap();
+    let path = temp.canonicalize().unwrap();
+    let options = run(vec!["project", path.to_str().unwrap()]);
+    assert_eq!(options.path, path);
 }
 
 #[test]
@@ -96,10 +113,12 @@ fn cli_flag_delete() {
 #[test]
 fn cli_flag_config_default() {
     let options = run(vec![]);
-    let expected = env::home_dir().map(|mut home| {
-        home.push(".to");
-        home
-    });
+    let expected = env::home_dir()
+        .map(|mut home| {
+                 home.push(".to");
+                 home
+             })
+        .unwrap();
 
     assert_eq!(options.config, expected);
 }
@@ -109,5 +128,5 @@ fn cli_flag_config() {
     let options = run(vec!["--config", "~/whatever"]);
     let expected = PathBuf::from("~/whatever");
 
-    assert_eq!(options.config, Some(expected));
+    assert_eq!(options.config, expected);
 }

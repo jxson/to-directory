@@ -11,8 +11,12 @@ pub fn resolve(path: PathBuf) -> Result<PathBuf> {
             value.push(path.to_path_buf());
             value
         }
-        Err(_) => bail!(ErrorKind::ResolveError(path)),
+        Err(_) => bail!(ErrorKind::CurrentDirectoryError(path)),
     };
+
+    if !absolute.exists() {
+        bail!(ErrorKind::PathDoesNotExistError(absolute));
+    }
 
     match absolute.canonicalize() {
         Ok(value) => Ok(value),
@@ -78,9 +82,7 @@ mod test {
     fn mkdirp_error() {
         let path = PathBuf::from("/should-not-have-premissions");
         let err = mkdirp(&path).err().unwrap();
-        assert_eq!(
-            format!("{}", ErrorKind::CreateDirError(path)),
-            format!("{}", err)
-        );
+        assert_eq!(format!("{}", ErrorKind::CreateDirError(path)),
+                   format!("{}", err));
     }
 }

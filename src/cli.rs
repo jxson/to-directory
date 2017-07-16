@@ -2,6 +2,8 @@ use clap;
 use std;
 use std::env;
 use std::path::PathBuf;
+use errors::*;
+use dir;
 
 pub use clap::ArgMatches;
 
@@ -81,9 +83,9 @@ pub struct Options {
     pub verbose: bool,
     pub initialize: bool,
     pub action: Action,
-    pub name: Option<String>,
-    pub path: Option<PathBuf>,
-    pub config: Option<PathBuf>,
+    pub name: String,
+    pub path: PathBuf,
+    pub config: PathBuf,
 }
 
 impl Options {
@@ -95,20 +97,17 @@ impl Options {
     /// use to::cli;
     ///
     /// let matches = cli::app().get_matches_from(vec![""]);
-    /// let options = cli::Options::new(matches);
+    /// let options = cli::Options::new(matches).unwrap();
     ///
     /// assert_eq!(options.verbose, false);
     /// assert_eq!(options.initialize, false);
-    /// assert_eq!(options.name, None);
     /// assert_eq!(options.action, cli::Action::Pathname);
     /// ```
-    pub fn new(matches: clap::ArgMatches) -> Options {
-        let (delete, info, list, save) = (
-            matches.is_present("delete"),
-            matches.is_present("info"),
-            matches.is_present("list"),
-            matches.is_present("save"),
-        );
+    pub fn new(matches: clap::ArgMatches) -> Result<Options> {
+        let (delete, info, list, save) = (matches.is_present("delete"),
+                                          matches.is_present("info"),
+                                          matches.is_present("list"),
+                                          matches.is_present("save"));
 
         let action = match (delete, info, list, save) {
             (true, _, _, _) => Action::Delete,
@@ -118,21 +117,25 @@ impl Options {
             _ => Action::Pathname,
         };
 
-        let name = matches.value_of("NAME").map(normalize);
-
-        let path = match matches.value_of("DIRECTORY") {
-            Some(value) => Some(PathBuf::from(value)),
-            None => None,
+        let directory = matches.value_of("DIRECTORY").map(PathBuf::from);
+        let path = match directory {
+            Some(value) => try!(dir::resolve(value)),
+            None => try!(env::current_dir()),
         };
 
-        Options {
-            action: action,
-            config: config(matches.value_of("config")),
-            path: path,
-            initialize: matches.is_present("initialize"),
-            name: name,
-            verbose: matches.is_present("verbose"),
-        }
+        let name = matches
+            .value_of("NAME")
+            .map(normalize)
+            .unwrap_or(try!(dir::basename(&path)));
+
+        Ok(Options {
+               action: action,
+               config: try!(config(matches.value_of("config"))),
+               path: path,
+               initialize: matches.is_present("initialize"),
+               name: name,
+               verbose: matches.is_present("verbose"),
+           })
     }
 }
 
@@ -147,13 +150,16 @@ fn normalize(string: &str) -> String {
         .to_lowercase()
 }
 
-fn config(value: Option<&str>) -> Option<PathBuf> {
-    value.map(PathBuf::from).or_else(|| {
-        env::home_dir().map(|mut home| {
-            home.push(".to");
-            home
-        })
-    })
+fn config(value: Option<&str>) -> Result<PathBuf> {
+    value
+        .map(PathBuf::from)
+        .or_else(|| {
+                     env::home_dir().map(|mut home| {
+                                             home.push(".to");
+                                             home
+                                         })
+                 })
+        .ok_or(ErrorKind::ConfigError.into())
 }
 
 #[cfg(test)]
