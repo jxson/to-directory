@@ -58,7 +58,7 @@ fn run(matches: cli::ArgMatches) -> Result<()> {
     info!(log, "database opened: {:?}", store.location);
 
     match options.action {
-        Action::Info => info(&store, options),
+        Action::Info => info(&store, &options),
         Action::Save => store.put(options.name, options.path),
         Action::Delete => store.delete(options.name),
         Action::List => list(&store),
@@ -66,7 +66,7 @@ fn run(matches: cli::ArgMatches) -> Result<()> {
     }
 }
 
-fn info(store: &Database, options: cli::Options) -> Result<()> {
+fn info(store: &Database, options: &cli::Options) -> Result<()> {
     match store.get(&options.name) {
         Some(bookmark) => println!("bookmark: {:?}", bookmark),
         None => println!("Not found"),

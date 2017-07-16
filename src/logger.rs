@@ -20,10 +20,8 @@ pub fn root(options: &cli::Options) -> slog::Logger {
 
     let drain = drain.filter_level(level).fuse();
 
-    let log = slog::Logger::root(
-        drain,
-        o!("name" => "to", "version" => env!("CARGO_PKG_VERSION")),
-    );
+    let log = slog::Logger::root(drain,
+                                 o!("name" => "to", "version" => env!("CARGO_PKG_VERSION")));
 
     info!(log, "parsed CLI options";
         "action" => format!("{:?}", options.action),

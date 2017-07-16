@@ -159,7 +159,7 @@ fn config(value: Option<&str>) -> Result<PathBuf> {
                                              home
                                          })
                  })
-        .ok_or(ErrorKind::ConfigError.into())
+        .ok_or_else(|| ErrorKind::ConfigError.into())
 }
 
 #[cfg(test)]
