@@ -66,8 +66,7 @@ pub fn app<'a, 'b>() -> clap::App<'a, 'b> {
                 "get",
                 "put",
                 "delete",
-                "list",
-            ]))
+                "list"]))
 }
 
 #[derive(Debug, PartialEq)]
@@ -136,8 +135,7 @@ impl Options {
             path: path,
             initialize: matches.is_present("initialize"),
             name: name,
-            verbose: matches.is_present("verbose"),
-        })
+            verbose: matches.is_present("verbose")})
     }
 }
 
