@@ -18,9 +18,9 @@ fn run(mut args: Vec<&str>) -> cli::Options {
 fn cli_defaults() {
     let config_dir = env::home_dir()
         .map(|mut home| {
-                 home.push(".to");
-                 home
-             })
+            home.push(".to");
+            home
+        })
         .unwrap();
     let current_dir = env::current_dir().unwrap();
     let options = run(vec![]);
@@ -115,9 +115,9 @@ fn cli_flag_config_default() {
     let options = run(vec![]);
     let expected = env::home_dir()
         .map(|mut home| {
-                 home.push(".to");
-                 home
-             })
+            home.push(".to");
+            home
+        })
         .unwrap();
 
     assert_eq!(options.config, expected);

@@ -82,7 +82,9 @@ mod test {
     fn mkdirp_error() {
         let path = PathBuf::from("/should-not-have-premissions");
         let err = mkdirp(&path).err().unwrap();
-        assert_eq!(format!("{}", ErrorKind::CreateDirError(path)),
-                   format!("{}", err));
+        assert_eq!(
+            format!("{}", ErrorKind::CreateDirError(path)),
+            format!("{}", err)
+        );
     }
 }

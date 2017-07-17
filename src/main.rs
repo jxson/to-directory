@@ -109,9 +109,7 @@ mod test {
 
     fn get_matches(values: Vec<&str>) -> cli::ArgMatches {
         let path = TempDir::new("test-config").map(|temp| temp.into_path());
-        let config = path.as_ref()
-            .map(|path| path.to_str().unwrap())
-            .unwrap();
+        let config = path.as_ref().map(|path| path.to_str().unwrap()).unwrap();
 
         let mut args = vec!["to", "--config", config];
         args.extend(values);

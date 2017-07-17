@@ -104,10 +104,12 @@ impl Options {
     /// assert_eq!(options.action, cli::Action::Pathname);
     /// ```
     pub fn new(matches: clap::ArgMatches) -> Result<Options> {
-        let (delete, info, list, save) = (matches.is_present("delete"),
-                                          matches.is_present("info"),
-                                          matches.is_present("list"),
-                                          matches.is_present("save"));
+        let (delete, info, list, save) = (
+            matches.is_present("delete"),
+            matches.is_present("info"),
+            matches.is_present("list"),
+            matches.is_present("save"),
+        );
 
         let action = match (delete, info, list, save) {
             (true, _, _, _) => Action::Delete,
@@ -129,13 +131,13 @@ impl Options {
             .unwrap_or(try!(dir::basename(&path)));
 
         Ok(Options {
-               action: action,
-               config: try!(config(matches.value_of("config"))),
-               path: path,
-               initialize: matches.is_present("initialize"),
-               name: name,
-               verbose: matches.is_present("verbose"),
-           })
+            action: action,
+            config: try!(config(matches.value_of("config"))),
+            path: path,
+            initialize: matches.is_present("initialize"),
+            name: name,
+            verbose: matches.is_present("verbose"),
+        })
     }
 }
 
@@ -154,11 +156,11 @@ fn config(value: Option<&str>) -> Result<PathBuf> {
     value
         .map(PathBuf::from)
         .or_else(|| {
-                     env::home_dir().map(|mut home| {
-                                             home.push(".to");
-                                             home
-                                         })
-                 })
+            env::home_dir().map(|mut home| {
+                home.push(".to");
+                home
+            })
+        })
         .ok_or_else(|| ErrorKind::ConfigError.into())
 }
 
