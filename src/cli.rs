@@ -135,7 +135,8 @@ impl Options {
             path: path,
             initialize: matches.is_present("initialize"),
             name: name,
-            verbose: matches.is_present("verbose")})
+            verbose: matches.is_present("verbose"),
+        })
     }
 }
 
