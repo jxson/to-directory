@@ -110,6 +110,47 @@ impl Database {
         self.bookmarks.iter()
     }
 
+    // Given a path, find the most specific (absolute) bookmark that covers it, if any.
+    //
+    // This is used for relative bookmarks which navigate within the subtree bounded by their most
+    // specific absolute bookmark.  When creating a bookmark, the bookmark path is passed to
+    // determine if the bookmark should be relative.  When navigating to a path given only a single
+    // bookmark name, the current directory is passed to determine the correct absolute path base.
+    pub fn find_longest_path_prefix_match(&self, value: &PathBuf) -> Option<&Bookmark> {
+        self.bookmarks.iter().fold(None, |best_so_far, (_, ref bookmark)| {
+            let ref dir = bookmark.directory;
+            // Is the bookmark a prefix of our path?
+            if dir.is_absolute() && value.starts_with(dir) {
+                // Is the best match so far still the longest?  Keep using it if so.
+                if let Some(x) = best_so_far {
+                    if x.directory.starts_with(dir) {
+                        return best_so_far;
+                    }
+                }
+
+                // We either had no existing candidate or the new bookmark is better.
+                return Some(&bookmark);
+            }
+
+            // The bookmark's not a candidate, the existing best candidate holds.
+            return best_so_far;
+        })
+    }
+
+    // Invoke find_longest_path_prefix_match, and if a bookmark is found, return value with the
+    // longest matching dir prefix stripped.  If a bookmark is not found, None is returned.
+    pub fn strip_longest_path_prefix_match(&self, value: &PathBuf) -> Option<PathBuf> {
+        if let Some(existing_bookmark) = self.find_longest_path_prefix_match(&value) {
+            match value.strip_prefix(existing_bookmark.directory.as_path()) {
+                Ok(stripped_path) => Some(stripped_path.to_path_buf()),
+                // It's a given that starts_with() will have passed, normalize the impossible.
+                Err(_) => None,
+            }
+        } else {
+            None
+        }
+    }
+
     fn close(&self) -> Result<()> {
         let path = PathBuf::from(&self.location);
 

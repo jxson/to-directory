@@ -39,6 +39,76 @@ Now every time you log in, the abbreviated `to` command will be available and al
 
     to --help
 
+# Usage
+
+## Absolute Bookmarks
+
+Traditional directory bookmarks store absolute paths.  Invoking `to <bookmark>`
+never depends on your current path.
+
+```console
+# Set a bookmark "stable" to the current dir, /home/user/git/cool-browser-stable
+$ cd /home/user/git/cool-browser-stable
+/home/user/git/cool-browser-stable
+$ to -s stable
+
+# Set a bookmark "trunk" by providing the full path
+$ to -s trunk /home/user/git/cool-browser-trunk
+
+# Set an unrelated bookmark "games" that is named using the current directory.
+$ cd /usr/local/games
+/usr/local/games
+$ to -s
+
+# go to the "stable" bookmark
+$ to stable
+/home/user/git/cool-browser-stable
+
+# go to the "trunk" bookmark
+$ to trunk
+/home/user/git/cool-browser-trunk
+
+# go to the "games" bookmark
+$ to games
+/usr/local/games
+```
+
+## Relative Bookmarks
+
+Relative bookmarks save paths that are interpreted in the context of absolute
+bookmarks.  They are useful when you have parallel directory structures, like
+when you have multiple checkouts of a single source code repository.  Invoking
+`to <relative bookmark>` searches the database for the absolute bookmark that
+matches the current directory, applies the relative bookmark's path to that
+absolute directory, then changes to that path.
+
+```console
+# Switch to the "stable" absolute bookmark we previously created.
+$ to stable
+/home/user/git/cool-browser-stable
+
+# Change to a really long sub-directory.
+$ cd deep/hard-to-type/subdir/so/so/long
+/home/user/git/cool-browser-stable/deep/hard-to-type/subdir/so/so/long
+
+# Set a relative bookmark "longish" to the current dir, relative to the current "stable" bookmark.
+$ to -r longish
+
+# Go to the "trunk" absolute bookmark
+$ to trunk
+/home/user/git/cool-browser-trunk
+
+# Go to the "longish" relative bookmark under "trunk"
+$ to longish
+/home/user/git/cool-browser-trunk/deep/hard-to-type/subdir/so/so/long
+
+# But this will not work if the directory does not exist.
+$ to games
+/usr/local/games
+$ to longish
+error: Path does not exist "/usr/local/games/deep/hard-to-type/subdir/so/so/long".
+```
+
 # Development
 
 ## Debugging
