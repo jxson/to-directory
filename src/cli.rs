@@ -45,6 +45,11 @@ pub fn app<'a, 'b>() -> clap::App<'a, 'b> {
             .short("s")
             .help("Save bookmark")
             .takes_value(false))
+        .arg(clap::Arg::with_name("save-relative")
+            .long("save-relative")
+            .short("r")
+            .help("Save relative bookmark")
+            .takes_value(false))
         .arg(clap::Arg::with_name("delete")
             .long("delete")
             .short("d")
@@ -75,6 +80,7 @@ pub enum Action {
     Info,
     List,
     Save,
+    SaveRelative,
     Pathname,
 }
 
@@ -103,18 +109,20 @@ impl Options {
     /// assert_eq!(options.action, cli::Action::Pathname);
     /// ```
     pub fn new(matches: clap::ArgMatches) -> Result<Options> {
-        let (delete, info, list, save) = (
+        let (delete, info, list, save, save_relative) = (
             matches.is_present("delete"),
             matches.is_present("info"),
             matches.is_present("list"),
             matches.is_present("save"),
+            matches.is_present("save-relative"),
         );
 
-        let action = match (delete, info, list, save) {
-            (true, _, _, _) => Action::Delete,
-            (_, true, _, _) => Action::Info,
-            (_, _, true, _) => Action::List,
-            (_, _, _, true) => Action::Save,
+        let action = match (delete, info, list, save, save_relative) {
+            (true, _, _, _, _) => Action::Delete,
+            (_, true, _, _, _) => Action::Info,
+            (_, _, true, _, _) => Action::List,
+            (_, _, _, true, _) => Action::Save,
+            (_, _, _, _, true) => Action::SaveRelative,
             _ => Action::Pathname,
         };
 
