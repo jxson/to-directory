@@ -82,8 +82,10 @@ fn save_relative(store: &mut Database, key: String, value: PathBuf) -> Result<()
     if let Some(stripped_path) = store.strip_longest_path_prefix_match(&value) {
         store.put(key, stripped_path.to_path_buf())
     } else {
-        println!("New bookmark path '{:?}' doesn't match any existing absolute bookmarks!",
-                 value);
+        println!(
+            "New bookmark path '{:?}' doesn't match any existing absolute bookmarks!",
+            value
+        );
         Ok(())
     }
 }
@@ -102,11 +104,16 @@ fn list(store: &Database) -> Result<()> {
     Ok(())
 }
 
-fn maybe_transform_relative_bookmark(store: &Database, bookmark: &Bookmark,
-                                     effective_dir: PathBuf) -> PathBuf {
+fn maybe_transform_relative_bookmark(
+    store: &Database,
+    bookmark: &Bookmark,
+    effective_dir: PathBuf,
+) -> PathBuf {
     if bookmark.directory.is_relative() {
         if let Some(absolute_bookmark) = store.find_longest_path_prefix_match(&effective_dir) {
-            absolute_bookmark.directory.join(bookmark.directory.as_path().clone())
+            absolute_bookmark
+                .directory
+                .join(bookmark.directory.as_path().clone())
         } else {
             bookmark.directory.clone()
         }
@@ -121,8 +128,7 @@ fn pathname(store: &Database, options: cli::Options) -> Result<()> {
         Err(_) => bail!(ErrorKind::CurrentDirectoryError(PathBuf::from("."))),
     };
     let value = match store.get(&options.name) {
-        Some(bookmark) =>
-            maybe_transform_relative_bookmark(store, bookmark, effective_dir),
+        Some(bookmark) => maybe_transform_relative_bookmark(store, bookmark, effective_dir),
         None => bail!(ErrorKind::BookmarkNotFound(options.name)),
     };
 

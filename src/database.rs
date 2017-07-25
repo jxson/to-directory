@@ -117,24 +117,27 @@ impl Database {
     // determine if the bookmark should be relative.  When navigating to a path given only a single
     // bookmark name, the current directory is passed to determine the correct absolute path base.
     pub fn find_longest_path_prefix_match(&self, value: &PathBuf) -> Option<&Bookmark> {
-        self.bookmarks.iter().fold(None, |best_so_far, (_, ref bookmark)| {
-            let ref dir = bookmark.directory;
-            // Is the bookmark a prefix of our path?
-            if dir.is_absolute() && value.starts_with(dir) {
-                // Is the best match so far still the longest?  Keep using it if so.
-                if let Some(x) = best_so_far {
-                    if x.directory.starts_with(dir) {
-                        return best_so_far;
+        self.bookmarks.iter().fold(
+            None,
+            |best_so_far, (_, ref bookmark)| {
+                let ref dir = bookmark.directory;
+                // Is the bookmark a prefix of our path?
+                if dir.is_absolute() && value.starts_with(dir) {
+                    // Is the best match so far still the longest?  Keep using it if so.
+                    if let Some(x) = best_so_far {
+                        if x.directory.starts_with(dir) {
+                            return best_so_far;
+                        }
                     }
+
+                    // We either had no existing candidate or the new bookmark is better.
+                    return Some(&bookmark);
                 }
 
-                // We either had no existing candidate or the new bookmark is better.
-                return Some(&bookmark);
-            }
-
-            // The bookmark's not a candidate, the existing best candidate holds.
-            return best_so_far;
-        })
+                // The bookmark's not a candidate, the existing best candidate holds.
+                return best_so_far;
+            },
+        )
     }
 
     // Invoke find_longest_path_prefix_match, and if a bookmark is found, return value with the
