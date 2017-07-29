@@ -12,12 +12,13 @@ use to::{cli, dir, logger};
 use to::cli::Action;
 use to::database::Database;
 use to::errors::*;
+use std::io::Write;
 
 fn main() {
     let matches = cli::app().get_matches();
+    let mut out = std::io::stdout();
 
-    // change the error output and logging based on the flags.
-    if let Err(ref e) = run(matches) {
+    if let Err(ref e) = run(matches, &mut out) {
         use std::io::Write;
         let stderr = &mut ::std::io::stderr();
         let stderr_errmsg = "Error writing to stderr";
@@ -38,7 +39,7 @@ fn main() {
     }
 }
 
-fn run(matches: cli::ArgMatches) -> Result<()> {
+fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
     let options = try!(cli::Options::new(matches));
     let log = logger::root(&options);
 
@@ -61,7 +62,7 @@ fn run(matches: cli::ArgMatches) -> Result<()> {
         Action::Info => info(&store, &options),
         Action::Save => store.put(options.name, options.path),
         Action::Delete => store.delete(options.name),
-        Action::List => list(&store),
+        Action::List => list(&store, out),
         Action::Pathname => pathname(&store, options),
     }
 }
@@ -75,7 +76,7 @@ fn info(store: &Database, options: &cli::Options) -> Result<()> {
     Ok(())
 }
 
-fn list(store: &Database) -> Result<()> {
+fn list<T: Write + ?Sized>(store: &Database, out: &mut T) -> Result<()> {
     let mut table = Table::new();
     table.add_row(row![ b => "Name", "Path", "Count"]);
 
@@ -84,7 +85,7 @@ fn list(store: &Database) -> Result<()> {
         table.add_row(row![name, path, bookmark.count]);
     }
 
-    table.printstd();
+    try!(table.print(out));
 
     Ok(())
 }
@@ -106,6 +107,23 @@ mod test {
 
     use super::*;
     use self::tempdir::TempDir;
+    use std::io::{self, Write};
+
+    struct TestWriter {}
+
+    impl Write for TestWriter {
+        fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+            Ok(buf.len())
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    fn test_run(matches: cli::ArgMatches) -> Result<()> {
+        let mut out = TestWriter {};
+        run(matches, &mut out)
+    }
 
     fn get_matches(values: Vec<&str>) -> cli::ArgMatches {
         let path = TempDir::new("test-config").map(|temp| temp.into_path());
@@ -120,14 +138,14 @@ mod test {
     #[test]
     fn run_is_ok() {
         let matches = get_matches(vec!["--info"]);
-        let result = run(matches);
+        let result = test_run(matches);
         assert!(result.is_ok());
     }
 
     #[test]
     fn run_with_init_flag() {
         let matches = get_matches(vec!["--init"]);
-        let result = run(matches);
+        let result = test_run(matches);
         assert!(result.is_ok());
     }
 
@@ -139,8 +157,48 @@ mod test {
         let config_value = config.to_str().unwrap();
         let matches = cli::app().get_matches_from(vec!["to", "--config", config_value, "--info"]);
 
-        assert!(!config.exists());
-        assert!(run(matches).is_ok());
+        assert_eq!(config.exists(), false);
+        assert!(test_run(matches).is_ok());
         assert!(config.exists());
+    }
+
+    #[test]
+    fn run_with_save_flag() {
+        let matches = get_matches(vec!["--save"]);
+        let result = test_run(matches);
+        assert!(result.is_ok());
+
+        let matches = get_matches(vec!["--save", "foo"]);
+        let result = test_run(matches);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn run_with_delete_flag() {
+        let matches = get_matches(vec!["--delete", "foo"]);
+        let key = String::from("foo");
+        let err = test_run(matches).err().unwrap();
+        assert_eq!(
+            format!("{}", ErrorKind::BookmarkNotFound(key)),
+            format!("{}", err)
+        );
+    }
+
+    #[test]
+    fn run_with_list_flag() {
+        let matches = get_matches(vec!["--list"]);
+        let result = test_run(matches);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn run_with_name() {
+        let matches = get_matches(vec!["foo"]);
+        let key = String::from("foo");
+        let err = test_run(matches).err().unwrap();
+        assert_eq!(
+            format!("{}", ErrorKind::BookmarkNotFound(key)),
+            format!("{}", err)
+        );
     }
 }
