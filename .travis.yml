@@ -25,11 +25,10 @@ matrix:
   - rust: beta
 before_script:
 - export PATH="$PATH:$HOME/.cargo/bin"
-- cargo install rustfmt-nightly -f
+- cargo install rustfmt-nightly --vers 0.2.1
 - which kcov || tools/install-cargo-kcov.sh
 script:
 - cargo fmt -- --write-mode=diff
-- cargo build
 - cargo test
 after_success:
 - tools/coveralls.sh
