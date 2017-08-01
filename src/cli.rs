@@ -124,10 +124,9 @@ impl Options {
             None => try!(env::current_dir()),
         };
 
-        let name = matches
-            .value_of("NAME")
-            .map(normalize)
-            .unwrap_or(try!(dir::basename(&path)));
+        let name = matches.value_of("NAME").map(normalize).unwrap_or(try!(
+            dir::basename(&path)
+        ));
 
         Ok(Options {
             action: action,

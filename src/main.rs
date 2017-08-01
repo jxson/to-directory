@@ -120,64 +120,71 @@ mod test {
         }
     }
 
-    fn test_run(matches: cli::ArgMatches) -> Result<()> {
-        let mut out = TestWriter {};
-        run(matches, &mut out)
+    fn config() -> String {
+        let tempdir = TempDir::new("mkdirp-test").unwrap();
+        format!("{:?}", tempdir.path())
     }
 
-    fn get_matches(values: Vec<&str>) -> cli::ArgMatches {
-        let path = TempDir::new("test-config").map(|temp| temp.into_path());
-        let config = path.as_ref().map(|path| path.to_str().unwrap()).unwrap();
-
-        let mut args = vec!["to", "--config", config];
-        args.extend(values);
-
-        cli::app().get_matches_from(args)
+    fn go(mut args: Vec<&str>) -> Result<()> {
+        args.insert(0, "to");
+        let matches = cli::app().get_matches_from(args);
+        run(matches, &mut TestWriter {})
     }
 
     #[test]
-    fn run_is_ok() {
-        let matches = get_matches(vec!["--info"]);
-        let result = test_run(matches);
+    fn no_args() {
+        let result = go(vec![]);
         assert!(result.is_ok());
     }
 
     #[test]
-    fn run_with_init_flag() {
-        let matches = get_matches(vec!["--init"]);
-        let result = test_run(matches);
+    fn init_flag() {
+        let result = go(vec!["--init"]);
         assert!(result.is_ok());
     }
 
     #[test]
-    fn run_with_non_existing_config() {
-        let config = TempDir::new("existing-dir")
+    fn config_flag_non_existing() {
+        let dir = TempDir::new("existing-dir")
             .map(|dir| dir.into_path().join("non-existing"))
             .unwrap();
-        let config_value = config.to_str().unwrap();
-        let matches = cli::app().get_matches_from(vec!["to", "--config", config_value, "--info"]);
+        let config = dir.to_str().unwrap();
+        let matches = cli::app().get_matches_from(vec!["to", "--config", config]);
 
-        assert_eq!(config.exists(), false);
-        assert!(test_run(matches).is_ok());
-        assert!(config.exists());
+        assert_eq!(dir.exists(), false);
+        assert!(run(matches, &mut TestWriter {}).is_ok());
+        assert!(dir.exists());
     }
 
     #[test]
-    fn run_with_save_flag() {
-        let matches = get_matches(vec!["--save"]);
-        let result = test_run(matches);
-        assert!(result.is_ok());
-
-        let matches = get_matches(vec!["--save", "foo"]);
-        let result = test_run(matches);
-        assert!(result.is_ok());
+    fn config_flag_existing() {
+        assert!(go(vec!["--config", &config()]).is_ok());
     }
 
     #[test]
-    fn run_with_delete_flag() {
-        let matches = get_matches(vec!["--delete", "foo"]);
+    fn save_flag_without_value() {
+        assert!(go(vec!["--save"]).is_ok());
+    }
+
+    #[test]
+    fn save_flag_with_value() {
+        assert!(go(vec!["--save", "foo"]).is_ok());
+    }
+
+    #[test]
+    fn delete_flag_existing() {
+        let config = &config();
+        assert!(go(vec!["--config", config, "--save", "foo"]).is_ok());
+        assert!(go(vec!["--config", config, "--delete", "foo"]).is_ok());
+    }
+
+    #[test]
+    fn delete_flag_non_existing() {
         let key = String::from("foo");
-        let err = test_run(matches).err().unwrap();
+        let err = go(vec!["--config", &config(), "--delete", "foo"])
+            .err()
+            .unwrap();
+
         assert_eq!(
             format!("{}", ErrorKind::BookmarkNotFound(key)),
             format!("{}", err)
@@ -185,17 +192,16 @@ mod test {
     }
 
     #[test]
-    fn run_with_list_flag() {
-        let matches = get_matches(vec!["--list"]);
-        let result = test_run(matches);
-        assert!(result.is_ok());
+    fn list_flag() {
+        let config = &config();
+        assert!(go(vec!["--config", config, "--save", "foo"]).is_ok());
+        assert!(go(vec!["--config", config, "--list"]).is_ok());
     }
 
     #[test]
-    fn run_with_name() {
-        let matches = get_matches(vec!["foo"]);
+    fn name_option_non_existing() {
         let key = String::from("foo");
-        let err = test_run(matches).err().unwrap();
+        let err = go(vec!["foo"]).err().unwrap();
         assert_eq!(
             format!("{}", ErrorKind::BookmarkNotFound(key)),
             format!("{}", err)

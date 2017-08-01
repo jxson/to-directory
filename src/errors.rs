@@ -3,7 +3,8 @@ use bincode;
 use std::path::PathBuf;
 
 
-static ISSUE_TEMPLATE: &'static str = r#"
+static ISSUE_TEMPLATE: &'static str =
+    r#"
 => If this is a bug please file an issue at: https://git.io/v96U6"#;
 
 error_chain! {
