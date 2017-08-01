@@ -29,6 +29,6 @@ before_script:
 - which kcov || tools/install-cargo-kcov.sh
 script:
 - cargo fmt -- --write-mode=diff
-- cargo test
+- RUST_BACKTRACE=1 cargo test
 after_success:
 - tools/coveralls.sh
