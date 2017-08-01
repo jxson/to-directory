@@ -149,7 +149,7 @@ mod test {
             .map(|dir| dir.into_path().join("non-existing"))
             .unwrap();
         let config = dir.to_str().unwrap();
-        let matches = cli::app().get_matches_from(vec!["to", "--config", config]);
+        let matches = cli::app().get_matches_from(vec!["to", "--config", config, "--info"]);
 
         assert_eq!(dir.exists(), false);
         assert!(run(matches, &mut TestWriter {}).is_ok());
@@ -158,7 +158,7 @@ mod test {
 
     #[test]
     fn config_flag_existing() {
-        assert!(go(vec!["--config", &config()]).is_ok());
+        assert!(go(vec!["--config", &config()]).is_err());
     }
 
     #[test]
@@ -201,7 +201,7 @@ mod test {
     #[test]
     fn name_option_non_existing() {
         let key = String::from("foo");
-        let err = go(vec!["foo"]).err().unwrap();
+        let err = go(vec!["--config", &config(), "foo"]).err().unwrap();
         assert_eq!(
             format!("{}", ErrorKind::BookmarkNotFound(key)),
             format!("{}", err)
