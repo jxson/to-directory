@@ -132,12 +132,6 @@ mod test {
     }
 
     #[test]
-    fn no_args() {
-        let result = go(vec![]);
-        assert!(result.is_ok());
-    }
-
-    #[test]
     fn init_flag() {
         let result = go(vec!["--init"]);
         assert!(result.is_ok());
