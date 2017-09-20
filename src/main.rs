@@ -45,7 +45,7 @@ fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
 
     // --init # echo the shell script for the `to` function.
     if options.initialize {
-        print!("{}", include_str!("to.sh"));
+        try!(write!(out, "{}", include_str!("to.sh")));
         return Ok(());
     }
 
@@ -63,7 +63,11 @@ fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
         Action::Save => store.put(options.name, options.path),
         Action::Delete => store.delete(options.name),
         Action::List => list(&store, out),
-        Action::Pathname => pathname(&store, options),
+        Action::Pathname => {
+            let path = try!(store.get_path(&options.name));
+            try!(write!(out, "{}", path.to_string_lossy()));
+            Ok(())
+        },
     }
 }
 
@@ -86,17 +90,6 @@ fn list<T: Write + ?Sized>(store: &Database, out: &mut T) -> Result<()> {
     }
 
     try!(table.print(out));
-
-    Ok(())
-}
-
-fn pathname(store: &Database, options: cli::Options) -> Result<()> {
-    let value = match store.get(&options.name) {
-        Some(bookmark) => bookmark.directory.to_string_lossy(),
-        None => bail!(ErrorKind::BookmarkNotFound(options.name)),
-    };
-
-    println!("{}", value);
 
     Ok(())
 }

@@ -66,6 +66,20 @@ impl Database {
         self.bookmarks.get(key)
     }
 
+    pub fn get_path(&mut self, key: &String) -> Result<PathBuf> {
+        let path: PathBuf;
+        match self.bookmarks.get_mut(key) {
+            Some(bookmark) => {
+                bookmark.last_access = Some(::now());
+                path = bookmark.directory.clone();
+            },
+            None => bail!(ErrorKind::BookmarkNotFound(key.to_string())),
+        };
+
+        try!(self.close());
+        Ok(path)
+    }
+
     // TODO: add a check to verify the db is open.
     // TODO: add check to verify value is a valid directory.
     pub fn put(&mut self, key: String, value: PathBuf) -> Result<()> {

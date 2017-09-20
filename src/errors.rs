@@ -8,7 +8,6 @@ static ISSUE_TEMPLATE: &'static str = r#"
 
 error_chain! {
     errors {
-        // CLI errors.
         BookmarkNotFound(name: String) {
             description("Bookmark not found")
             display("There is no entry for the bookmark {}", name)
@@ -29,7 +28,6 @@ error_chain! {
             display("For example: to foo")
         }
 
-        // Bookmark DB errors.
         DBOpenError(path: PathBuf) {
             description("Failed to open bookmark DB.")
             display("Failed to open db file: {:?}.{}", path, ISSUE_TEMPLATE)
@@ -40,7 +38,6 @@ error_chain! {
             display("Could not close: \n\"{:?}\"\n\n{}", path, ISSUE_TEMPLATE)
         }
 
-        // Directory and path errors.
         ResolveError(path: PathBuf) {
             description("Failed to resolve path.")
             display("Failed to resolve {:?}.{}", path, ISSUE_TEMPLATE)
