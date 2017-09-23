@@ -25,7 +25,7 @@ matrix:
   - rust: beta
 before_script:
 - export PATH="$PATH:$HOME/.cargo/bin"
-- if [[ -z $(which rustfmt) ]] ; then cargo install rustfmt-nightly --vers 0.2.1 ; fi
+- if [[ -z $(which rustfmt) ]] ; then cargo install rustfmt-nightly ; fi
 - which kcov || tools/install-cargo-kcov.sh
 script:
 - cargo fmt -- --write-mode=diff
