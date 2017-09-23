@@ -72,7 +72,7 @@ impl Database {
             Some(bookmark) => {
                 bookmark.last_access = Some(::now());
                 path = bookmark.directory.clone();
-            },
+            }
             None => bail!(ErrorKind::BookmarkNotFound(key.to_string())),
         };
 
@@ -136,7 +136,6 @@ impl Database {
 
         try!(dehydrate(file, &self.bookmarks));
         Ok(())
-
     }
 }
 

@@ -1,10 +1,10 @@
-extern crate to;
 #[macro_use]
 extern crate error_chain;
 #[macro_use]
 extern crate prettytable;
 #[macro_use]
 extern crate slog;
+extern crate to;
 
 use std::path::PathBuf;
 use prettytable::Table;
@@ -67,7 +67,7 @@ fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
             let path = try!(store.get_path(&options.name));
             try!(write!(out, "{}", path.to_string_lossy()));
             Ok(())
-        },
+        }
     }
 }
 

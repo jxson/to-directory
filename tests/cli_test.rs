@@ -1,5 +1,5 @@
-extern crate to;
 extern crate tempdir;
+extern crate to;
 
 use std::env;
 use std::path::PathBuf;
