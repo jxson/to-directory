@@ -4,8 +4,6 @@ cache:
   - apt
 dist: trusty
 sudo: true
-# https://blog.travis-ci.com/2017-06-21-trusty-updates-2017-Q2-launch
-# group: deprecated-2017Q2
 addons:
   apt:
     packages:
@@ -20,15 +18,16 @@ rust:
 - beta
 - nightly
 matrix:
+  fast_finish: true
   allow_failures:
   - rust: stable
   - rust: beta
-before_script:
-- export PATH="$PATH:$HOME/.cargo/bin"
-- if [[ -z $(which rustfmt) ]] ; then cargo install rustfmt-nightly ; fi
-- which kcov || tools/install-cargo-kcov.sh
+# before_script:
+# - export PATH="$PATH:$HOME/.cargo/bin"
+# - if [[ -z $(which rustfmt) ]] ; then cargo install rustfmt-nightly ; fi
 script:
-- cargo fmt -- --write-mode=diff
+# - cargo fmt -- --write-mode=diff
+- cargo build
 - RUST_BACKTRACE=1 cargo test
 after_success:
-- tools/coveralls.sh
+- scripts/coverage.sh
