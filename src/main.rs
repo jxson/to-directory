@@ -194,4 +194,11 @@ mod test {
             format!("{}", err)
         );
     }
+
+    #[test]
+    fn name_option() {
+        let config = &config();
+        assert!(go(vec!["--config", config, "--save", "foo"]).is_ok());
+        assert!(go(vec!["--config", config, "foo"]).is_ok());
+    }
 }
