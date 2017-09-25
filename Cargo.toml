@@ -30,4 +30,3 @@ time = "0.1.36"
 
 [dev-dependencies]
 tempdir = "0.3.5"
-assert_cli = "0.4.0"

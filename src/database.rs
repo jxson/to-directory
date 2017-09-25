@@ -62,11 +62,11 @@ impl Database {
         }
     }
 
-    pub fn get(&self, key: &String) -> Option<&Bookmark> {
+    pub fn get(&self, key: &str) -> Option<&Bookmark> {
         self.bookmarks.get(key)
     }
 
-    pub fn get_path(&mut self, key: &String) -> Result<PathBuf> {
+    pub fn get_path(&mut self, key: &str) -> Result<PathBuf> {
         let path: PathBuf;
         match self.bookmarks.get_mut(key) {
             Some(bookmark) => {
