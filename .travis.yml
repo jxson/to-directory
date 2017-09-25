@@ -1,5 +1,6 @@
 language: rust
 cache:
+  - cargo
   - apt
 dist: trusty
 sudo: true
