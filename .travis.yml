@@ -22,9 +22,4 @@ matrix:
   allow_failures:
   - rust: stable
   - rust: beta
-script:
-- cargo build
-- cargo test
-- scripts/lint.sh
-after_success:
-- scripts/coverage.sh
+script: ./scripts/travis.sh

@@ -21,16 +21,16 @@ build:
 	@$(CARGO) $(CARGO_OPTS) build
 
 PHONY: test
-test: lint test-rust test-bats
+test: test-rust test-bats
 
 PHONY: test-rust
 test-rust:
-	@echo "== running: cargo test"
+	scripts/lint.sh
 	@$(CARGO) $(CARGO_OPTS) test
 
 PHONY: test-bats
 test-bats: vendor/bats
-	@echo "== running: bats test/integration/*"
+	@echo "==> running: bats test/integration/*"
 	@$(bats) $(bats_files)
 
 vendor/bats:
@@ -38,22 +38,7 @@ vendor/bats:
 	@git clone https://github.com/sstephenson/bats.git $@
 	@touch $@
 
-# TODO(jxson): derive the directory correctly.
-# http://stackoverflow.com/questions/18136918/how-to-get-current-relative-directory-of-your-makefile
-PHONY: init
-init: build # Run with: eval "$(make init)"
-	@echo -e "export PATH=\"$(shell pwd)/target/debug:\$${PATH}\""
-	@echo "$$(cargo run -q -- --init)"
-
 PHONY: install
 install:
 	cargo build --release
 	cp target/release/to-directory "$$(brew --prefix)/bin"
-
-PHONY: fmt
-fmt:
-	@$(CARGO) $(CARGO_OPTS) fmt -- --write-mode overwrite
-
-PHONY: lint
-lint:
-	@$(CARGO) $(CARGO_OPTS) clippy

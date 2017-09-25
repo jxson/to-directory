@@ -1,6 +1,4 @@
 #[macro_use]
-extern crate error_chain;
-#[macro_use]
 extern crate prettytable;
 #[macro_use]
 extern crate slog;
