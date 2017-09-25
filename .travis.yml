@@ -22,12 +22,9 @@ matrix:
   allow_failures:
   - rust: stable
   - rust: beta
-# before_script:
-# - export PATH="$PATH:$HOME/.cargo/bin"
-# - if [[ -z $(which rustfmt) ]] ; then cargo install rustfmt-nightly ; fi
 script:
-# - cargo fmt -- --write-mode=diff
 - cargo build
-- RUST_BACKTRACE=1 cargo test
+- cargo test
+- scripts/lint.sh
 after_success:
 - scripts/coverage.sh
