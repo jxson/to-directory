@@ -22,4 +22,4 @@ matrix:
   allow_failures:
   - rust: stable
   - rust: beta
-script: ./scripts/travis.sh
+script: RUST_BACKTRACE=1 ./scripts/travis.sh

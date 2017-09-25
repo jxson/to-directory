@@ -7,8 +7,8 @@ use assert_cli::Assert;
 fn to_init_flag() {
     Assert::main_binary()
         .with_args(&["--init"])
-        .succeeds()
-        .and()
+        // .succeeds()
+        // .and()
         .prints(include_str!("../src/to.sh"))
         .unwrap();
 }
