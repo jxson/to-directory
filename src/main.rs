@@ -10,31 +10,24 @@ use to::{cli, dir, logger};
 use to::cli::Action;
 use to::database::Database;
 use to::errors::*;
-use std::io::Write;
+use std::io::{Write, stderr, stdout};
+use std::process::exit;
 
 fn main() {
-    let matches = cli::app().get_matches();
-    let mut out = std::io::stdout();
+    if let Err(ref err) = run(cli::app().get_matches(), &mut stdout()) {
+        let stderr = &mut stderr();
+        let stderr_msg = "Error writing to stderr";
 
-    if let Err(ref e) = run(matches, &mut out) {
-        use std::io::Write;
-        let stderr = &mut ::std::io::stderr();
-        let stderr_errmsg = "Error writing to stderr";
-
-        writeln!(stderr, "error: {}", e).expect(stderr_errmsg);
-
-        for e in e.iter().skip(1) {
-            writeln!(stderr, "caused by: {}", e).expect(stderr_errmsg);
+        for cause in err.iter() {
+            writeln!(stderr, "{}", cause).expect(stderr_msg);
         }
 
-        // The backtrace is not always generated. Try to run this example
-        // with `RUST_BACKTRACE=1`.
-        if let Some(backtrace) = e.backtrace() {
-            writeln!(stderr, "backtrace: {:?}", backtrace).expect(stderr_errmsg);
+        if let Some(backtrace) = err.backtrace() {
+            writeln!(stderr, "backtrace: {:?}", backtrace).expect(stderr_msg);
         }
 
-        ::std::process::exit(1);
-    }
+        exit(1);
+    };
 }
 
 fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
