@@ -1,7 +1,6 @@
-use std;
 use bincode;
+use std;
 use std::path::PathBuf;
-
 
 static ISSUE_TEMPLATE: &'static str = r#"
 => If this is a bug please file an issue at: https://git.io/v96U6"#;
@@ -10,7 +9,7 @@ error_chain! {
     errors {
         BookmarkNotFound(name: String) {
             description("Bookmark not found")
-            display("There is no entry for the bookmark {}", name)
+            display("The bookmark \"{}\" was not found", name)
         }
 
         InfoFlagRequiresName {
@@ -72,5 +71,18 @@ error_chain! {
     foreign_links {
         IOError(std::io::Error) #[doc = "Error during IO"];
         BincodeError(std::boxed::Box<bincode::ErrorKind>);
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn bookmark_not_found() {
+        let name = String::from("nope");
+        let err = ErrorKind::BookmarkNotFound(name);
+        assert_eq!(err.description(), "Bookmark not found");
+        assert_eq!(err.to_string(), "The bookmark \"nope\" was not found");
     }
 }
