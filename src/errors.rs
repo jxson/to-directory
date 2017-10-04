@@ -8,27 +8,12 @@ static ISSUE_TEMPLATE: &'static str = r#"
 error_chain! {
     errors {
         BookmarkNotFound(name: String) {
-            description("Bookmark not found")
+            description("Bookmark not found.")
             display("The bookmark \"{}\" was not found", name)
         }
 
-        InfoFlagRequiresName {
-            description("--info requires <name>")
-            display("For example: to -i foo")
-        }
-
-        DeleteFlagRequiresName {
-            description("--delete requires <name>")
-            display("For example: to -d foo")
-        }
-
-        ToRequiresName {
-            description("requires <name>")
-            display("For example: to foo")
-        }
-
         DBOpenError(path: PathBuf) {
-            description("Failed to open bookmark DB.")
+            description("Failed to open database.")
             display("Failed to open db file: {:?}.{}", path, ISSUE_TEMPLATE)
         }
 
@@ -82,7 +67,15 @@ mod test {
     fn bookmark_not_found() {
         let name = String::from("nope");
         let err = ErrorKind::BookmarkNotFound(name);
-        assert_eq!(err.description(), "Bookmark not found");
+        assert_eq!(err.description(), "Bookmark not found.");
         assert_eq!(err.to_string(), "The bookmark \"nope\" was not found");
+    }
+
+    #[test]
+    fn database_open_failure() {
+        let path = PathBuf::from("nope");
+        let err = ErrorKind::DBOpenError(path);
+        assert_eq!(err.description(), "Failed to open database.");
+        assert_eq!(err.to_string(), format!("Failed to open db file: {:?}.{}", PathBuf::from("nope"), ISSUE_TEMPLATE));
     }
 }

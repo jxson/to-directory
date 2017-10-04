@@ -21,7 +21,6 @@ pub mod logger;
 pub mod database;
 
 /// Get the current time in milliseconds.
-///
 pub fn now() -> u64 {
     let timespec = time::now_utc().to_timespec();
     let seconds = timespec.sec as u64 * 1000;
