@@ -18,8 +18,8 @@ error_chain! {
         }
 
         DBCloseError(path: PathBuf) {
-            description("Failed to close DB file")
-            display("Could not close: \n\"{:?}\"\n\n{}", path, ISSUE_TEMPLATE)
+            description("Failed to close database.")
+            display("Failed to close db file: {:?}.{}", path, ISSUE_TEMPLATE)
         }
 
         ResolveError(path: PathBuf) {
@@ -77,5 +77,13 @@ mod test {
         let err = ErrorKind::DBOpenError(path);
         assert_eq!(err.description(), "Failed to open database.");
         assert_eq!(err.to_string(), format!("Failed to open db file: {:?}.{}", PathBuf::from("nope"), ISSUE_TEMPLATE));
+    }
+
+    #[test]
+    fn database_close_failure() {
+        let path = PathBuf::from("nope");
+        let err = ErrorKind::DBCloseError(path);
+        assert_eq!(err.description(), "Failed to close database.");
+        assert_eq!(err.to_string(), format!("Failed to close db file: {:?}.{}", PathBuf::from("nope"), ISSUE_TEMPLATE));
     }
 }
