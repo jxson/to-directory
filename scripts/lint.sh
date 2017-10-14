@@ -1,3 +1,5 @@
+set -e
+
 source "$(git rev-parse --show-toplevel)/scripts/common.sh"
 
 function main() {

@@ -10,7 +10,7 @@ use to::{cli, dir, logger};
 use to::cli::Action;
 use to::database::Database;
 use to::errors::*;
-use std::io::{Write, stderr, stdout};
+use std::io::{stderr, stdout, Write};
 use std::process::exit;
 
 fn main() {
