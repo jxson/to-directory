@@ -12,7 +12,7 @@ use errors::*;
 pub struct Bookmark {
     pub name: String,
     pub directory: PathBuf,
-    created_at: u64,
+    pub created_at: u64,
     pub updated_at: u64,
     pub last_access: Option<u64>,
     pub count: i64,
@@ -22,11 +22,13 @@ pub type Bookmarks = BTreeMap<String, Bookmark>;
 
 impl Bookmark {
     pub fn new(name: String, directory: PathBuf) -> Bookmark {
+        let timestamp = ::now();
+
         Bookmark {
             name: name,
             directory: directory,
-            created_at: ::now(),
-            updated_at: ::now(),
+            created_at: timestamp,
+            updated_at: timestamp,
             last_access: None,
             count: 0,
         }
@@ -154,4 +156,22 @@ fn dehydrate(file: File, bookmarks: &Bookmarks) -> Result<()> {
 
     try!(serialize_into(&mut writer, &bookmarks, Infinite));
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Bookmark};
+    use std::path::PathBuf;
+
+    #[test]
+    fn bookmark_values() {
+        let name = String::from("hello");
+        let path = PathBuf::from("/tmp/hello");
+        let bookmark = Bookmark::new(name, path);
+
+        assert_eq!(bookmark.name, String::from("hello"));
+        assert_eq!(bookmark.directory, PathBuf::from("/tmp/hello"));
+        assert!(bookmark.last_access.is_none());
+        assert_eq!(bookmark.count, 0);
+    }
 }
