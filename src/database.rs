@@ -160,7 +160,7 @@ fn dehydrate(file: File, bookmarks: &Bookmarks) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::{Bookmark};
+    use super::Bookmark;
     use std::path::PathBuf;
 
     #[test]
