@@ -6,18 +6,16 @@ function main() {
   if [[ $TRAVIS_RUST_VERSION -eq "nightly" ]]; then
     echo "==> installing rustfmt-nightly"
     cargo install rustfmt-nightly --force
-  fi
 
-  echo "==> checking formatting"
-  cargo fmt -- --write-mode=diff
-
-  if [[ -z $(which cargo-clippy) ]]; then
     echo "==> installing cargo-clippy"
-    cargo install clippy
-  fi
+    cargo install clippy --force
 
-  echo "==> checking clippy lints"
-  cargo clippy
+    echo "==> checking formatting"
+    cargo fmt -- --write-mode=diff
+
+    echo "==> checking clippy lints"
+    cargo clippy
+  fi
 }
 
 main "$@"
