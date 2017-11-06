@@ -22,7 +22,7 @@ function main() {
   if [[ $TRAVIS_RUST_VERSION -eq "nightly" ]]
   then
     echo "==> building coverage reports"
-    cargo kcov --coveralls
+    cargo kcov --coveralls --no-clean-rebuild 
   fi
 }
 
