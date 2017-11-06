@@ -10,6 +10,5 @@ fn to_init_flag() {
         .and()
         .stdout()
         .contains(include_str!("../src/to.sh"))
-        .execute();
-    assert!(test.is_ok());
+        .unwrap();
 }
