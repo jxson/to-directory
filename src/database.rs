@@ -47,6 +47,7 @@ impl Database {
             path.push("db");
         }
 
+        debug!("opening DB ");
         let bookmarks = match File::open(&path) {
             Ok(file) => try!(hydrate(file)),
             Err(ref err) if notfound(err) => Bookmarks::new(),

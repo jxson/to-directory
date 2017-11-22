@@ -1,17 +1,19 @@
 #[macro_use]
 extern crate prettytable;
 #[macro_use]
-extern crate slog;
+extern crate log;
+extern crate loggerv;
 extern crate to;
 
 use std::path::PathBuf;
 use prettytable::Table;
-use to::{cli, dir, logger};
+use to::{cli, dir};
 use to::cli::Action;
 use to::database::Database;
 use to::errors::*;
 use std::io::{stderr, stdout, Write};
 use std::process::exit;
+use log::LogLevel;
 
 fn main() {
     if let Err(ref err) = run(cli::app().get_matches(), &mut stdout()) {
@@ -32,7 +34,11 @@ fn main() {
 
 fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
     let options = try!(cli::Options::new(matches));
-    let log = logger::root(&options);
+
+    // TODO(jxson): see about fixing the name of the log.
+    // TODO(jxson): configure logger based on user input.
+    try!(loggerv::init_with_level(LogLevel::Info));
+    info!("logger initialized");
 
     // --init # echo the shell script for the `to` function.
     if options.initialize {
@@ -43,11 +49,11 @@ fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
     let config = PathBuf::from(&options.config);
 
     if !config.exists() {
+        info!("creating config dir: {:?}", &config);
         try!(dir::mkdirp(&config));
     }
 
     let mut store = try!(Database::open(config));
-    info!(log, "database opened: {:?}", store.location);
 
     match options.action {
         Action::Info => info(&store, &options),

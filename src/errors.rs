@@ -1,3 +1,4 @@
+use log;
 use bincode;
 use std;
 use std::path::PathBuf;
@@ -56,6 +57,7 @@ error_chain! {
     foreign_links {
         IOError(std::io::Error) #[doc = "Error during IO"];
         BincodeError(std::boxed::Box<bincode::ErrorKind>);
+        SetLoggerError(log::SetLoggerError);
     }
 }
 

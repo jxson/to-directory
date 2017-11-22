@@ -8,16 +8,13 @@ extern crate clap;
 extern crate error_chain;
 #[macro_use]
 extern crate serde_derive;
-#[macro_use]
-extern crate slog;
-extern crate slog_async;
-extern crate slog_term;
 extern crate time;
+#[macro_use] extern crate log;
+extern crate loggerv;
 
 pub mod cli;
 pub mod dir;
 pub mod errors;
-pub mod logger;
 pub mod database;
 
 /// Get the current time in milliseconds.
