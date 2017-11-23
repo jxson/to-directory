@@ -37,8 +37,10 @@ fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
 
     // TODO(jxson): see about fixing the name of the log.
     // TODO(jxson): configure logger based on user input.
-    try!(loggerv::init_with_level(LogLevel::Info));
-    info!("logger initialized");
+    match loggerv::init_with_level(LogLevel::Info) {
+        Ok(_) => info!("logger initialized"),
+        Err(_) => {}, // Ignored due to tests reusing the log singleton.
+    }
 
     // --init # echo the shell script for the `to` function.
     if options.initialize {
