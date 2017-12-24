@@ -2,9 +2,7 @@ extern crate assert_cli;
 
 use assert_cli::Assert;
 
-#[test]
-#[ignore]
-fn to_init_flag() {
+fn main() {
     let test = Assert::main_binary()
         .with_args(&["--init"])
         .succeeds()
