@@ -23,10 +23,14 @@ error-chain = "0.11.0"
 prettytable-rs = "^0.6"
 serde = "1.0.10"
 serde_derive = "1.0.10"
-loggerv = "0.4.0"
-log = "*"
+loggerv = "0.6"
+log = "0.3"
 time = "0.1.36"
 
 [dev-dependencies]
 assert_cli = "0.5.4"
 tempdir = "0.3.5"
+tap-rust = { git = "https://github.com/Cigna/TAP-Rust", rev = "939a7ab" }
+
+[[example]]
+name = "integration-tests"
