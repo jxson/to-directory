@@ -1,5 +1,4 @@
 {
-  "to-directory --init": {
-    "status": 0
-  }
+  "name": "to --init",
+  "status": 0
 }

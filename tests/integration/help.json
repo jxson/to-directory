@@ -1,5 +1,4 @@
 {
-  "to --help": {
-    "status": 0
-  }
+  "name": "to --help",
+  "status": 0
 }
