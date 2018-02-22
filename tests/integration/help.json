@@ -1,4 +1,5 @@
 {
   "name": "to --help",
+  "args": ["--help"],
   "status": 0
 }

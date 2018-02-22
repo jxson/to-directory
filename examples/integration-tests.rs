@@ -7,10 +7,9 @@ extern crate bincode;
 extern crate serde;
 extern crate serde_json;
 
-// use bincode;
 use glob::glob;
-// use assert_cli::Assert;
-// use tap_rust::tap_writer::TapWriter;
+use assert_cli::Assert;
+use tap_rust::tap_writer::TapWriter;
 use std::env;
 use std::path::PathBuf;
 use std::fs::File;
@@ -25,33 +24,15 @@ fn main() {
 
     for entry in glob(&path).expect("Failed to read glob pattern") {
         match entry {
-            Ok(path) => test(&path),
+            Ok(path) => {
+                match test(&path) {
+                    Err(e) => println!("{:?}", e),
+                    _ => {},
+                }
+            },
             Err(e) => println!("{:?}", e),
         }
     }
-
-    // let test = Assert::main_binary()
-    //     .with_args(&["--init"])
-    //     .succeeds()
-    //     .and()
-    //     .stdout()
-    //     .contains(include_str!("../src/to.sh"))
-    //     .execute();
-    //
-    // let writer = TapWriter::new("Example TAP stream");
-    //
-    // writer.plan(1, 1);
-    //
-    // writer.name();
-    //
-    // match test {
-    //     Ok(_) => writer.ok(1, "--init"),
-    //     Err(err) => {
-    //         writer.not_ok(1, "--init");
-    //         let message = format!("{}", err);
-    //         writer.diagnostic(message.as_str());
-    //     },
-    // }
 }
 
 error_chain!{
@@ -64,12 +45,47 @@ error_chain!{
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct Spec {
     pub name: String,
-    pub status: u32,
+    pub status: i32,
+    pub args: String,
+    // pub args: &'a[&'a str],
 }
 
-fn test(path: &PathBuf) {
-    let spec = hydrate(path);
-    println!("{:?}", spec);
+fn test(path: &PathBuf) -> Result<()> {
+    let spec = try!(hydrate(path));
+    let args: Vec<&str> = spec.args.split(" ").collect();
+    let mut test = Assert::main_binary()
+            .with_args(&args);
+
+    if spec.status == 0 {
+        test = test.succeeds();
+    } else {
+        test = test.fails();
+    }
+
+    let writer = TapWriter::new(&spec.name);
+
+    writer.plan(1, 1);
+
+    writer.name();
+
+    match test.execute() {
+
+    }
+
+    Ok(())
+
+    //
+    //
+    //
+    //
+    // match test {
+    //     Ok(_) => writer.ok(1, "--init"),
+    //     Err(err) => {
+    //         writer.not_ok(1, "--init");
+    //         let message = format!("{}", err);
+    //         writer.diagnostic(message.as_str());
+    //     },
+    // }
 }
 
 fn hydrate(path: &PathBuf) -> Result<Spec> {
