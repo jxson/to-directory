@@ -3,10 +3,9 @@ extern crate to;
 
 use std::env;
 use std::path::PathBuf;
-use to::cli::Action;
-use to::cli;
 use tempdir::TempDir;
-
+use to::cli;
+use to::cli::Action;
 
 fn run(mut args: Vec<&str>) -> cli::Options {
     args.insert(0, "to");
