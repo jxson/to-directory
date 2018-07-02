@@ -3,27 +3,17 @@ use std::process;
 
 pub struct Output {
   pub status: i32,
-  stdout: Vec<u8>,
-  stderr: Vec<u8>,
+  pub stdout: String,
+  pub stderr: String,
 }
 
 impl Output {
   fn new(o: process::Output) -> Output {
     Output {
       status: o.status.code().expect("failed to get status code"),
-      stdout: o.stdout,
-      stderr: o.stderr,
+      stdout: String::from_utf8(o.stdout).expect("failed to convert stdout"),
+      stderr: String::from_utf8(o.stderr).expect("failed to convert stderr"),
     }
-  }
-
-  pub fn stdout(&self) -> String {
-    let bytes = self.stdout.clone();
-    String::from_utf8(bytes).expect("failed to convert stdout")
-  }
-
-  pub fn stderr(&self) -> String {
-    let bytes = self.stderr.clone();
-    String::from_utf8(bytes).expect("failed to convert stderr")
   }
 }
 
