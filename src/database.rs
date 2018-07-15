@@ -1,12 +1,28 @@
-use std::path::PathBuf;
-use std::collections::BTreeMap;
+use bincode::{deserialize_from, serialize_into, Infinite};
+use failure;
 use std::collections::btree_map::Iter;
+use std::collections::BTreeMap;
 use std::fs::{File, OpenOptions};
 use std::io;
 use std::io::{BufReader, BufWriter};
-use bincode::{deserialize_from, serialize_into, Infinite};
+use std::path::PathBuf;
 
-use errors::*;
+pub type Result<T> = ::std::result::Result<T, failure::Error>;
+
+#[derive(Debug, Fail)]
+pub enum Error {
+    #[fail(display = "Bookmark ({}) not found", name)]
+    NotFound { name: String },
+
+    #[fail(display = "{}", _0)]
+    DB(#[cause] io::Error),
+}
+
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Self {
+        Error::DB(err)
+    }
+}
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct Bookmark {
@@ -51,7 +67,7 @@ impl Database {
         let bookmarks = match File::open(&path) {
             Ok(file) => try!(hydrate(file)),
             Err(ref err) if notfound(err) => Bookmarks::new(),
-            Err(_) => bail!(ErrorKind::DBOpenError(path)),
+            Err(err) => bail!(Error::DB(err)),
         };
 
         let db = Database::new(path, bookmarks);
@@ -69,14 +85,15 @@ impl Database {
         self.bookmarks.get(key)
     }
 
-    pub fn get_path(&mut self, key: &str) -> Result<PathBuf> {
+    // TODO(): fold get and get_path into one method.
+    pub fn get_path(&mut self, key: String) -> Result<PathBuf> {
         let path: PathBuf;
-        match self.bookmarks.get_mut(key) {
+        match self.bookmarks.get_mut(&key) {
             Some(bookmark) => {
                 bookmark.last_access = Some(::now());
                 path = bookmark.directory.clone();
             }
-            None => bail!(ErrorKind::BookmarkNotFound(key.to_string())),
+            None => bail!(Error::NotFound { name: key }),
         };
 
         try!(self.close());
@@ -95,7 +112,7 @@ impl Database {
 
     pub fn delete(&mut self, key: String) -> Result<()> {
         if self.bookmarks.remove(&key).is_none() {
-            bail!(ErrorKind::BookmarkNotFound(key));
+            bail!(Error::NotFound { name: key });
         }
 
         try!(self.close());
@@ -108,7 +125,7 @@ impl Database {
                 bookmark.directory = path;
                 bookmark.updated_at = ::now();
             }
-            None => bail!(ErrorKind::BookmarkNotFound(key)),
+            None => bail!(Error::NotFound { name: key }),
         }
 
         try!(self.close());
@@ -135,10 +152,9 @@ impl Database {
             .write(true)
             .create(true)
             .open(&path)
-            .chain_err(|| ErrorKind::DBOpenError(path))?;
+            .map_err(Error::from)?;
 
-        try!(dehydrate(file, &self.bookmarks));
-        Ok(())
+        dehydrate(file, &self.bookmarks)
     }
 }
 

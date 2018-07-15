@@ -9,13 +9,16 @@ extern crate error_chain;
 #[macro_use]
 extern crate serde_derive;
 extern crate time;
-#[macro_use] extern crate log;
+#[macro_use]
+extern crate log;
 extern crate loggerv;
+#[macro_use]
+extern crate failure;
 
 pub mod cli;
+pub mod database;
 pub mod dir;
 pub mod errors;
-pub mod database;
 
 /// Get the current time in milliseconds.
 pub fn now() -> u64 {
