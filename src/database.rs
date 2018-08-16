@@ -14,6 +14,7 @@ pub enum Error {
     #[fail(display = "Bookmark ({}) not found", name)]
     NotFound { name: String },
 
+    // TODO(): error should take a cause and a pathname.
     #[fail(display = "{}", _0)]
     DB(#[cause] io::Error),
 }

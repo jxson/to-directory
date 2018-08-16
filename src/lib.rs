@@ -5,8 +5,6 @@ extern crate bincode;
 #[macro_use]
 extern crate clap;
 #[macro_use]
-extern crate error_chain;
-#[macro_use]
 extern crate serde_derive;
 extern crate time;
 #[macro_use]
@@ -18,7 +16,8 @@ extern crate failure;
 pub mod cli;
 pub mod database;
 pub mod dir;
-pub mod errors;
+
+pub type Result<T> = ::std::result::Result<T, failure::Error>;
 
 /// Get the current time in milliseconds.
 pub fn now() -> u64 {

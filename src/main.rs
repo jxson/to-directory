@@ -5,31 +5,43 @@ extern crate log;
 extern crate loggerv;
 extern crate to;
 
-use std::path::PathBuf;
+use log::LogLevel;
 use prettytable::Table;
-use to::{cli, dir};
+use std::io::{stderr, stdout, Write};
+use std::path::PathBuf;
+use std::process::exit;
 use to::cli::Action;
 use to::database::Database;
-use to::errors::*;
-use std::io::{stderr, stdout, Write};
-use std::process::exit;
-use log::LogLevel;
+use to::Result;
+use to::{cli, dir};
 
 fn main() {
-    if let Err(ref err) = run(cli::app().get_matches(), &mut stdout()) {
+    let matches = cli::app().get_matches();
+    if let Err(err) = run(matches, &mut stdout()) {
         let stderr = &mut stderr();
         let stderr_msg = "Error writing to stderr";
 
-        for cause in err.iter() {
-            writeln!(stderr, "{}", cause).expect(stderr_msg);
-        }
+        // for cause in err.iter() {
+        //     writeln!(stderr, "{}", cause).expect(stderr_msg);
+        // }
 
-        if let Some(backtrace) = err.backtrace() {
-            writeln!(stderr, "backtrace: {:?}", backtrace).expect(stderr_msg);
-        }
+        // if let Some(backtrace) = err.backtrace() {
+        //     writeln!(stderr, "backtrace: {:?}", backtrace).expect(stderr_msg);
+        // }
 
         exit(1);
     };
+
+    //     if let Err(err) = try_main() {
+    //     if let Some(ioerr) = err.root_cause().downcast_ref::<io::Error>() {
+    //         if ioerr.kind() == io::ErrorKind::BrokenPipe {
+    //             // broken pipe means our consume hung up, quit gracefully
+    //             process:exit(0);
+    //         }
+    //     }
+    //     eprintln!("{}", err);
+    //     process::exit(1);
+    // }
 }
 
 fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
@@ -39,7 +51,7 @@ fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
     // TODO(jxson): configure logger based on user input.
     match loggerv::init_with_level(LogLevel::Info) {
         Ok(_) => debug!("logger initialized"),
-        Err(_) => {}, // Ignored due to tests reusing the log singleton.
+        Err(_) => {} // Ignored due to tests reusing the log singleton.
     }
 
     // --init # echo the shell script for the `to` function.
@@ -63,7 +75,7 @@ fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
         Action::Delete => store.delete(options.name),
         Action::List => list(&store, out),
         Action::Pathname => {
-            let path = try!(store.get_path(&options.name));
+            let path = try!(store.get_path(options.name));
             try!(write!(out, "{}", path.to_string_lossy()));
             Ok(())
         }
@@ -97,8 +109,8 @@ fn list<T: Write + ?Sized>(store: &Database, out: &mut T) -> Result<()> {
 mod test {
     extern crate tempdir;
 
-    use super::*;
     use self::tempdir::TempDir;
+    use super::*;
     use std::io::{self, Write};
 
     struct TestWriter {}

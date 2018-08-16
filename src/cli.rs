@@ -1,9 +1,9 @@
 use clap;
+use dir;
 use std;
 use std::env;
 use std::path::PathBuf;
-use errors::*;
-use dir;
+use Result;
 
 pub use clap::ArgMatches;
 
@@ -160,7 +160,7 @@ fn config(value: Option<&str>) -> Result<PathBuf> {
                 home
             })
         })
-        .ok_or_else(|| ErrorKind::ConfigError.into())
+        .ok_or_else(|| format_err!("Unable to derive config"))
 }
 
 #[cfg(test)]
