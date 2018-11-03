@@ -1,144 +1,69 @@
-use bincode;
-use log;
-use std;
-use std::path::PathBuf;
+use failure::{Backtrace, Context, Fail, ResultExt};
+use std::env;
+use std::fmt;
+use std::fmt::Display;
+use std::io;
+use std::path::{Path, PathBuf};
 
-static ISSUE_TEMPLATE: &'static str = r#"
-=> If this is a bug please file an issue at: https://git.io/v96U6"#;
+#[derive(Debug, Fail)]
+pub struct Error {
+    ctx: Context<ErrorKind>,
+}
 
-error_chain! {
-    errors {
-
+impl Error {
+    pub fn io(err: io::Error) -> Error {
+        Error::from(ErrorKind::IO(err.to_string()))
     }
 
-    foreign_links {
-        IOError(std::io::Error) #[doc = "Error during IO"];
-        BincodeError(std::boxed::Box<bincode::ErrorKind>);
-        SetLoggerError(log::SetLoggerError);
+    pub fn path<P: AsRef<Path>>(path: P) -> Error {
+        let kind = ErrorKind::Path(path.as_ref().to_path_buf());
+        Error::from(kind)
     }
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.ctx.fmt(f)
+    }
+}
 
-    #[test]
-    fn bookmark_not_found() {
-        let name = String::from("nope");
-        let err = ErrorKind::BookmarkNotFound(name);
-        assert_eq!(err.description(), "Bookmark not found.");
-        assert_eq!(err.to_string(), "The bookmark \"nope\" was not found");
+impl From<ErrorKind> for Error {
+    fn from(kind: ErrorKind) -> Error {
+        Error::from(Context::new(kind))
+    }
+}
+
+impl From<Context<ErrorKind>> for Error {
+    fn from(ctx: Context<ErrorKind>) -> Error {
+        Error { ctx }
+    }
+}
+
+#[derive(Debug, Fail)]
+pub enum ErrorKind {
+    Path(PathBuf),
+    IO(String),
+}
+
+impl fmt::Display for ErrorKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            ErrorKind::Path(ref path) => write!(f, "path: {}", path.display()),
+            ErrorKind::IO(ref msg) => write!(f, "IO error: {}", msg),
+        }
+    }
+}
+
+/// Return a prettily formatted error, including its entire causal chain.
+pub fn format_chain(err: &failure::Error) -> String {
+    let mut pretty = err.to_string();
+    let mut prev = err.as_fail();
+    while let Some(next) = prev.cause() {
+        pretty.push_str(": ");
+        pretty.push_str(&next.to_string());
+        prev = next;
     }
 
-    #[test]
-    fn database_open_failure() {
-        let path = PathBuf::from("nope");
-        let err = ErrorKind::DBOpenError(path);
-        assert_eq!(err.description(), "Failed to open database.");
-        assert_eq!(
-            err.to_string(),
-            format!(
-                "Failed to open db file: {:?}.{}",
-                PathBuf::from("nope"),
-                ISSUE_TEMPLATE
-            )
-        );
-    }
-
-    #[test]
-    fn database_close_failure() {
-        let path = PathBuf::from("nope");
-        let err = ErrorKind::DBCloseError(path);
-        assert_eq!(err.description(), "Failed to close database.");
-        assert_eq!(
-            err.to_string(),
-            format!(
-                "Failed to close db file: {:?}.{}",
-                PathBuf::from("nope"),
-                ISSUE_TEMPLATE
-            )
-        );
-    }
-
-    #[test]
-    fn path_resolve_error() {
-        let path = PathBuf::from("nope");
-        let err = ErrorKind::ResolveError(path);
-        assert_eq!(err.description(), "Failed to resolve path.");
-        assert_eq!(
-            err.to_string(),
-            format!(
-                "Failed to resolve: {:?}.{}",
-                PathBuf::from("nope"),
-                ISSUE_TEMPLATE
-            )
-        );
-    }
-
-    #[test]
-    fn path_does_not_exist_error() {
-        let path = PathBuf::from("nope");
-        let err = ErrorKind::PathDoesNotExistError(path);
-        assert_eq!(err.description(), "Path does not exist.");
-        assert_eq!(
-            err.to_string(),
-            format!(
-                "Path does not exist: {:?}.{}",
-                PathBuf::from("nope"),
-                ISSUE_TEMPLATE
-            )
-        );
-    }
-
-    #[test]
-    fn cwd_error() {
-        let path = PathBuf::from("nope");
-        let err = ErrorKind::CurrentDirectoryError(path);
-        assert_eq!(err.description(), "Failed to derive current directory.");
-        assert_eq!(
-            err.to_string(),
-            format!(
-                "Failed to get current dir when resolving: {:?}.{}",
-                PathBuf::from("nope"),
-                ISSUE_TEMPLATE
-            )
-        );
-    }
-
-    #[test]
-    fn config_error() {
-        let err = ErrorKind::ConfigError;
-        assert_eq!(err.description(), "Unable to derive config");
-        assert_eq!(err.to_string(), format!("{}", ISSUE_TEMPLATE));
-    }
-
-    #[test]
-    fn basename_error() {
-        let path = PathBuf::from("nope");
-        let err = ErrorKind::BasenameError(path);
-        assert_eq!(err.description(), "Failed to derive basename");
-        assert_eq!(
-            err.to_string(),
-            format!(
-                "Could not derive basename from: {:?}.{}",
-                PathBuf::from("nope"),
-                ISSUE_TEMPLATE
-            )
-        );
-    }
-
-    #[test]
-    fn create_dir_error() {
-        let path = PathBuf::from("nope");
-        let err = ErrorKind::CreateDirError(path);
-        assert_eq!(err.description(), "Failed to create dir");
-        assert_eq!(
-            err.to_string(),
-            format!(
-                "Failed to create {:?}.{}",
-                PathBuf::from("nope"),
-                ISSUE_TEMPLATE
-            )
-        );
-    }
+    pretty.push_str(&format!("{}", err.backtrace()));
+    pretty
 }

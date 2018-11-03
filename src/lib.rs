@@ -1,5 +1,4 @@
-// `error_chain!` recursion limit.
-#![recursion_limit = "1024"]
+#![feature(extern_prelude)]
 
 extern crate bincode;
 #[macro_use]
@@ -16,14 +15,15 @@ extern crate failure;
 pub mod cli;
 pub mod database;
 pub mod dir;
+pub mod errors;
 
 pub type Result<T> = ::std::result::Result<T, failure::Error>;
 
 /// Get the current time in milliseconds.
 pub fn now() -> u64 {
-    let timespec = time::now_utc().to_timespec();
-    let seconds = timespec.sec as u64 * 1000;
-    let milliseconds_offset = timespec.nsec as u64 / 1000 / 1000;
+  let timespec = time::now_utc().to_timespec();
+  let seconds = timespec.sec as u64 * 1000;
+  let milliseconds_offset = timespec.nsec as u64 / 1000 / 1000;
 
-    seconds + milliseconds_offset
+  seconds + milliseconds_offset
 }

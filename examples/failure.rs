@@ -12,15 +12,10 @@ use std::path::{Path, PathBuf};
 fn main() {
     let path = PathBuf::from("does-not-exist");
 
-    // for cause in Fail::iter_causes(&resolve(does_not_exist).unwrap_err()) {
-    //     println!("{}", cause);
-    // }
-
     match resolve(path) {
         Ok(path) => println!("success: {:?}", path),
         Err(err) => println!("failure: {}", pretty_error(&err)),
     }
-    // println!("{:?}, {:?}", err.cause(), err.backtrace())
 }
 
 #[derive(Debug, Fail)]

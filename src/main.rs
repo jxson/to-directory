@@ -13,35 +13,18 @@ use std::process::exit;
 use to::cli::Action;
 use to::database::Database;
 use to::Result;
-use to::{cli, dir};
+use to::{cli, dir, errors};
 
 fn main() {
     let matches = cli::app().get_matches();
     if let Err(err) = run(matches, &mut stdout()) {
         let stderr = &mut stderr();
-        let stderr_msg = "Error writing to stderr";
+        let message = errors::format_chain(&err);
 
-        // for cause in err.iter() {
-        //     writeln!(stderr, "{}", cause).expect(stderr_msg);
-        // }
-
-        // if let Some(backtrace) = err.backtrace() {
-        //     writeln!(stderr, "backtrace: {:?}", backtrace).expect(stderr_msg);
-        // }
+        writeln!(stderr, "command failed: {}", message).expect("failed to write to stderr");
 
         exit(1);
     };
-
-    //     if let Err(err) = try_main() {
-    //     if let Some(ioerr) = err.root_cause().downcast_ref::<io::Error>() {
-    //         if ioerr.kind() == io::ErrorKind::BrokenPipe {
-    //             // broken pipe means our consume hung up, quit gracefully
-    //             process:exit(0);
-    //         }
-    //     }
-    //     eprintln!("{}", err);
-    //     process::exit(1);
-    // }
 }
 
 fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
