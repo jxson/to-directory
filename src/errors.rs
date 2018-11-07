@@ -5,6 +5,8 @@ use std::fmt::Display;
 use std::io;
 use std::path::{Path, PathBuf};
 
+pub type Result<T> = ::std::result::Result<T, failure::Error>;
+
 #[derive(Debug, Fail)]
 pub struct Error {
     ctx: Context<ErrorKind>,

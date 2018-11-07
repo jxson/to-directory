@@ -17,8 +17,6 @@ pub mod database;
 pub mod dir;
 pub mod errors;
 
-pub type Result<T> = ::std::result::Result<T, failure::Error>;
-
 /// Get the current time in milliseconds.
 pub fn now() -> u64 {
   let timespec = time::now_utc().to_timespec();

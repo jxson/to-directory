@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use std::process::exit;
 use to::cli::Action;
 use to::database::Database;
-use to::Result;
+use to::errors::Result;
 use to::{cli, dir, errors};
 
 fn main() {
