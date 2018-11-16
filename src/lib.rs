@@ -1,5 +1,3 @@
-#![feature(extern_prelude)]
-
 extern crate bincode;
 #[macro_use]
 extern crate clap;
@@ -8,9 +6,10 @@ extern crate serde_derive;
 extern crate time;
 #[macro_use]
 extern crate log;
-extern crate loggerv;
-#[macro_use]
 extern crate failure;
+#[macro_use]
+extern crate failure_derive;
+extern crate loggerv;
 
 pub mod cli;
 pub mod database;

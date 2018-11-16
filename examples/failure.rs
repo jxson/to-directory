@@ -1,11 +1,9 @@
-#[macro_use]
 extern crate failure;
 extern crate to;
 
-use failure::{Backtrace, Context, Fail, ResultExt};
+use failure::{Context, Fail, ResultExt};
 use std::env;
 use std::fmt;
-use std::fmt::Display;
 use std::io;
 use std::path::{Path, PathBuf};
 

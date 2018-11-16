@@ -1,6 +1,6 @@
 use clap;
 use dir;
-use errors::Result;
+use errors::{Error, Result};
 use std;
 use std::env;
 use std::path::PathBuf;
@@ -12,61 +12,69 @@ pub fn app<'a, 'b>() -> clap::App<'a, 'b> {
         .version(crate_version!())
         .author(crate_authors!())
         .about("Bookmark directories")
-
         // User friendly info! output.
-        .arg(clap::Arg::with_name("verbose")
-            .long("verbose")
-            .short("v")
-            .help("Verbose log output")
-            .takes_value(false))
-
-        .arg(clap::Arg::with_name("config")
-            .long("config")
-            .short("c")
-            .help("Config dir, defaults to ~/.to")
-            .takes_value(true))
-
+        .arg(
+            clap::Arg::with_name("verbose")
+                .long("verbose")
+                .short("v")
+                .help("Verbose log output")
+                .takes_value(false),
+        )
+        .arg(
+            clap::Arg::with_name("config")
+                .long("config")
+                .short("c")
+                .help("Config dir, defaults to ~/.to")
+                .takes_value(true),
+        )
         // Positional arguments.
-        .arg(clap::Arg::with_name("NAME")
-            .help("Name of the bookamrk")
-            .index(1))
-        .arg(clap::Arg::with_name("DIRECTORY")
-            .help("Path of the bookamrk")
-            .index(2))
-
+        .arg(
+            clap::Arg::with_name("NAME")
+                .help("Name of the bookamrk")
+                .index(1),
+        )
+        .arg(
+            clap::Arg::with_name("DIRECTORY")
+                .help("Path of the bookamrk")
+                .index(2),
+        )
         // Flags.
-        .arg(clap::Arg::with_name("info")
-            .long("info")
-            .short("i")
-            .help("Show bookmark information")
-            .takes_value(false))
-        .arg(clap::Arg::with_name("save")
-            .long("save")
-            .short("s")
-            .help("Save bookmark")
-            .takes_value(false))
-        .arg(clap::Arg::with_name("delete")
-            .long("delete")
-            .short("d")
-            .help("Delete bookmark")
-            .takes_value(false)
-            .requires("NAME"))
-        .arg(clap::Arg::with_name("list")
-            .long("list")
-            .short("l")
-            .help("List all bookmarks")
-            .takes_value(false))
-        .arg(clap::Arg::with_name("initialize")
-            .long("init")
-            .help("Echo initialization script")
-            .takes_value(false)
-            .conflicts_with_all(&[
-                "NAME",
-                "DIRECTORY",
-                "get",
-                "put",
-                "delete",
-                "list"]))
+        .arg(
+            clap::Arg::with_name("info")
+                .long("info")
+                .short("i")
+                .help("Show bookmark information")
+                .takes_value(false),
+        )
+        .arg(
+            clap::Arg::with_name("save")
+                .long("save")
+                .short("s")
+                .help("Save bookmark")
+                .takes_value(false),
+        )
+        .arg(
+            clap::Arg::with_name("delete")
+                .long("delete")
+                .short("d")
+                .help("Delete bookmark")
+                .takes_value(false)
+                .requires("NAME"),
+        )
+        .arg(
+            clap::Arg::with_name("list")
+                .long("list")
+                .short("l")
+                .help("List all bookmarks")
+                .takes_value(false),
+        )
+        .arg(
+            clap::Arg::with_name("initialize")
+                .long("init")
+                .help("Echo initialization script")
+                .takes_value(false)
+                .conflicts_with_all(&["NAME", "DIRECTORY", "get", "put", "delete", "list"]),
+        )
 }
 
 #[derive(Debug, PartialEq)]
@@ -121,7 +129,7 @@ impl Options {
         let directory = matches.value_of("DIRECTORY").map(PathBuf::from);
         let path = match directory {
             Some(value) => try!(dir::resolve(value)),
-            None => try!(env::current_dir()),
+            None => env::current_dir().map_err(Error::io)?,
         };
 
         let name = matches
@@ -160,7 +168,7 @@ fn config(value: Option<&str>) -> Result<PathBuf> {
                 home
             })
         })
-        .ok_or_else(|| format_err!("failed to derive config path"))
+        .ok_or_else(Error::config)
 }
 
 #[cfg(test)]

@@ -1,76 +1,75 @@
-use failure;
+use errors::{Error, ErrorKind, Result};
+use failure::ResultExt;
 use std::env;
 use std::fs;
 use std::io;
 use std::path::PathBuf;
 
-pub type Result<T> = ::std::result::Result<T, failure::Error>;
+// pub type Result<T> = ::std::result::Result<T, failure::Error>;
 
-#[derive(Debug, Fail)]
-pub enum Error {
-    #[fail(display = "Path does not exist: {}", name)]
-    DoesNotExist { name: String },
+// #[derive(Debug, Fail)]
+// pub enum Error {
+//     #[fail(display = "Path does not exist: {}", name)]
+//     DoesNotExist { name: String },
 
-    // TODO(): error should take a cause and a pathname.
-    #[fail(display = "{}", _0)]
-    IO(#[cause] io::Error),
+//     // TODO(): error should take a cause and a pathname.
+//     #[fail(display = "{}", _0)]
+//     IO(#[cause] io::Error),
 
-    #[fail(display = "Failed to derive basename for \"{}\"", name)]
-    Basename { name: String },
-}
+//     #[fail(display = "Failed to derive basename for \"{}\"", name)]
+//     Basename { name: String },
+// }
 
-impl Error {
-    fn does_not_exist(path: PathBuf) -> Self {
-        // TODO: there has to be a better way to get a string here.
-        let name = path.to_str().unwrap();
-        Error::DoesNotExist {
-            name: String::from(name),
-        }
-    }
+// impl Error {
+//     fn does_not_exist(path: PathBuf) -> Self {
+//         // TODO: there has to be a better way to get a string here.
+//         let name = path.to_str().unwrap();
+//         Error::DoesNotExist {
+//             name: String::from(name),
+//         }
+//     }
 
-    fn basename(suffix: &PathBuf) -> Self {
-        let name = suffix.to_str().unwrap();
-        Error::Basename {
-            name: String::from(name),
-        }
-    }
-}
+//     fn basename(suffix: &PathBuf) -> Self {
+//         let name = suffix.to_str().unwrap();
+//         Error::Basename {
+//             name: String::from(name),
+//         }
+//     }
+// }
 
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
-        Error::IO(err)
-    }
-}
+// impl From<io::Error> for Error {
+//     fn from(err: io::Error) -> Self {
+//         Error::IO(err)
+//     }
+// }
 
 pub fn resolve(path: PathBuf) -> Result<PathBuf> {
-    let absolute = match env::current_dir() {
-        Ok(mut value) => {
-            value.push(path.to_path_buf());
-            value
-        }
-        Err(err) => bail!(Error::from(err)),
-    };
+    let path = env::current_dir()
+        .map(|mut p| {
+            p.push(path.to_path_buf());
+            p
+        })
+        .map_err(Error::io)?;
+    // .context("failed to get current dir")?;
 
-    if !absolute.exists() {
-        bail!(Error::does_not_exist(absolute));
-    }
+    let path = path
+        .canonicalize()
+        .map_err(Error::io)
+        .with_context(|_| ErrorKind::Path(path))?;
 
-    match absolute.canonicalize() {
-        Ok(value) => Ok(value),
-        Err(err) => bail!(Error::from(err)),
-    }
+    Ok(path)
 }
 
 pub fn basename(path: &PathBuf) -> Result<String> {
     match path.file_stem() {
-        None => bail!(Error::basename(path)),
+        None => return Err(Error::path(path)),
         Some(stem) => {
             let os_string = stem.to_os_string();
 
             match os_string.into_string() {
                 Ok(string) => Ok(string),
                 // TODO(): add cause to error.
-                Err(_) => bail!(Error::basename(path)),
+                Err(_) => return Err(Error::path(path)),
             }
         }
     }
@@ -81,7 +80,7 @@ pub fn mkdirp(directory: &PathBuf) -> Result<()> {
     match fs::create_dir_all(&directory) {
         Ok(_) => Ok(()),
         Err(ref err) if exists(err) => Ok(()),
-        Err(err) => bail!(Error::from(err)),
+        Err(err) => return Err(Error::io(err)),
     }
 }
 

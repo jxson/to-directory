@@ -1,29 +1,11 @@
 use bincode::{deserialize_from, serialize_into, Infinite};
-use failure;
+use errors::{Error, ErrorKind, Result};
+use failure::ResultExt;
 use std::collections::btree_map::Iter;
 use std::collections::BTreeMap;
 use std::fs::{File, OpenOptions};
-use std::io;
 use std::io::{BufReader, BufWriter};
 use std::path::PathBuf;
-
-pub type Result<T> = ::std::result::Result<T, failure::Error>;
-
-#[derive(Debug, Fail)]
-pub enum Error {
-    #[fail(display = "Bookmark ({}) not found", name)]
-    NotFound { name: String },
-
-    // TODO(): error should take a cause and a pathname.
-    #[fail(display = "{}", _0)]
-    DB(#[cause] io::Error),
-}
-
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
-        Error::DB(err)
-    }
-}
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct Bookmark {
@@ -65,14 +47,13 @@ impl Database {
         }
 
         debug!("opening DB ");
-        let bookmarks = match File::open(&path) {
-            Ok(file) => try!(hydrate(file)),
-            Err(ref err) if notfound(err) => Bookmarks::new(),
-            Err(err) => bail!(Error::DB(err)),
-        };
 
-        let db = Database::new(path, bookmarks);
-        Ok(db)
+        let bookmarks = File::open(&path)
+            .map_err(Error::io)
+            .and_then(hydrate)
+            .with_context(|_| ErrorKind::Path(path.clone()))?;
+
+        Ok(Database::new(path, bookmarks))
     }
 
     fn new(location: PathBuf, bookmarks: Bookmarks) -> Database {
@@ -94,10 +75,10 @@ impl Database {
                 bookmark.last_access = Some(::now());
                 path = bookmark.directory.clone();
             }
-            None => bail!(Error::NotFound { name: key }),
+            None => return Err(Error::not_found(key)),
         };
 
-        try!(self.close());
+        self.close()?;
         Ok(path)
     }
 
@@ -112,12 +93,10 @@ impl Database {
     }
 
     pub fn delete(&mut self, key: String) -> Result<()> {
-        if self.bookmarks.remove(&key).is_none() {
-            bail!(Error::NotFound { name: key });
-        }
-
-        try!(self.close());
-        Ok(())
+        self.bookmarks
+            .remove(&key)
+            .ok_or_else(|| Error::not_found(key))
+            .and_then(|_| self.close())
     }
 
     fn update(&mut self, key: String, path: PathBuf) -> Result<()> {
@@ -126,7 +105,7 @@ impl Database {
                 bookmark.directory = path;
                 bookmark.updated_at = ::now();
             }
-            None => bail!(Error::NotFound { name: key }),
+            None => return Err(Error::not_found(key)),
         }
 
         try!(self.close());
@@ -146,6 +125,8 @@ impl Database {
     }
 
     fn close(&self) -> Result<()> {
+        debug!("closing DB");
+
         let path = PathBuf::from(&self.location);
 
         let file = OpenOptions::new()
@@ -153,26 +134,23 @@ impl Database {
             .write(true)
             .create(true)
             .open(&path)
-            .map_err(Error::from)?;
+            .map_err(Error::io)
+            .with_context(|_| ErrorKind::Path(path))?;
 
         dehydrate(file, &self.bookmarks)
     }
 }
 
-fn notfound(err: &io::Error) -> bool {
-    err.kind() == io::ErrorKind::NotFound
-}
-
 fn hydrate(file: File) -> Result<Bookmarks> {
     let mut reader = BufReader::new(file);
-    let bookmarks: Bookmarks = try!(deserialize_from(&mut reader, Infinite));
+    let bookmarks: Bookmarks = deserialize_from(&mut reader, Infinite).map_err(Error::bincode)?;
     Ok(bookmarks)
 }
 
 fn dehydrate(file: File, bookmarks: &Bookmarks) -> Result<()> {
     let mut writer = BufWriter::new(file);
 
-    try!(serialize_into(&mut writer, &bookmarks, Infinite));
+    serialize_into(&mut writer, &bookmarks, Infinite).map_err(Error::bincode)?;
     Ok(())
 }
 

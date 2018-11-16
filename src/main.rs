@@ -95,6 +95,7 @@ mod test {
     use self::tempdir::TempDir;
     use super::*;
     use std::io::{self, Write};
+    use to::errors::ErrorKind;
 
     struct TestWriter {}
 
@@ -166,10 +167,7 @@ mod test {
             .err()
             .unwrap();
 
-        assert_eq!(
-            format!("{}", ErrorKind::BookmarkNotFound(key)),
-            format!("{}", err)
-        );
+        assert_eq!(format!("{}", ErrorKind::NotFound(key)), format!("{}", err));
     }
 
     #[test]
@@ -183,10 +181,7 @@ mod test {
     fn name_option_non_existing() {
         let key = String::from("foo");
         let err = go(vec!["--config", &config(), "foo"]).err().unwrap();
-        assert_eq!(
-            format!("{}", ErrorKind::BookmarkNotFound(key)),
-            format!("{}", err)
-        );
+        assert_eq!(format!("{}", ErrorKind::NotFound(key)), format!("{}", err));
     }
 
     #[test]
