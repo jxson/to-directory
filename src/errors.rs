@@ -81,15 +81,15 @@ impl fmt::Display for ErrorKind {
 }
 
 pub fn pretty_error(err: &failure::Error) -> String {
-    let mut pretty = err.to_string();
+    let mut pretty = format!("\n => {}", err.to_string());
     let mut prev = err.as_fail();
     while let Some(next) = prev.cause() {
-        pretty.push_str(": ");
+        pretty.push_str("\n => ");
         pretty.push_str(&next.to_string());
         prev = next;
     }
 
-    pretty.push_str(&format!("{}", err.backtrace()));
+    pretty.push_str(&format!("\n\n{}", err.backtrace()));
 
     pretty
 }

@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use std::process::exit;
 use to::cli::Action;
 use to::database::Database;
-use to::errors::{pretty_error, Error, Result, ResultExt};
+use to::errors::{pretty_error, Error, Result};
 use to::{cli, dir};
 
 fn main() {
@@ -21,7 +21,8 @@ fn main() {
         let stderr = &mut stderr();
         let message = pretty_error(&err);
 
-        writeln!(stderr, "command failed: {}", message).expect("failed to write to stderr");
+        writeln!(stderr, "to-directory command failed {}", message)
+            .expect("failed to write to stderr");
 
         exit(1);
     };
@@ -30,6 +31,7 @@ fn main() {
 fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
     // TODO(jxson): see about fixing the name of the log.
     // TODO(jxson): configure logger based on user input.
+    // https://git.io/fp4VU
     match loggerv::init_with_level(LogLevel::Debug) {
         Ok(_) => debug!("logger initialized"),
         Err(_) => {} // Ignored due to tests reusing the log singleton.
@@ -45,6 +47,8 @@ fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
 
     let config = PathBuf::from(&options.config);
 
+    debug!("config dir: {:?}", config);
+
     if !config.exists() {
         info!("creating config dir: {:?}", &config);
         dir::mkdirp(&config)?;
@@ -59,7 +63,7 @@ fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
         Action::List => list(&store, out),
         Action::Pathname => {
             let path = try!(store.get_path(options.name));
-            write!(out, "{}", path.to_string_lossy());
+            write!(out, "{}", path.to_string_lossy())?;
             Ok(())
         }
     }

@@ -1,7 +1,7 @@
 use clap;
 use dir;
 use dirs::home_dir;
-use errors::{Error, Result, ResultExt};
+use errors::{Error, Result};
 use std;
 use std::env;
 use std::path::PathBuf;
@@ -183,5 +183,19 @@ mod test {
         assert_eq!(normalize("trim-trailing/"), "trim-trailing");
         assert_eq!(normalize("LOWERCASE"), "lowercase");
         assert_eq!(normalize("  spaces "), "spaces");
+    }
+
+    #[test]
+    fn config_with_some() {
+        let option = Some("foo");
+        let path = config(option).unwrap();
+        assert_eq!(path, PathBuf::from("foo"));
+    }
+
+    #[test]
+    fn config_with_none() {
+        let option = None;
+        let path = config(option).unwrap();
+        assert_eq!(path, default_config().unwrap());
     }
 }

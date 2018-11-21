@@ -68,7 +68,7 @@ pub fn basename(path: &PathBuf) -> Result<String> {
 
     let string = os_string
         .into_string()
-        .map_err(|og_value| format_err!("failed to convert os string"))
+        .map_err(|_| format_err!("failed to convert os string"))
         .with_context(|_| Error::path(path))?;
 
     Ok(string)
@@ -76,6 +76,8 @@ pub fn basename(path: &PathBuf) -> Result<String> {
 
 /// A function that acts like `mkdir -p`.
 pub fn mkdirp(path: &PathBuf) -> Result<()> {
+    debug!("mkdirp - path exists: {}", path.exists());
+
     let res = match fs::create_dir_all(&path) {
         Ok(v) => Ok(v),
         Err(ref err) if exists(err) => Ok(()),
@@ -83,6 +85,8 @@ pub fn mkdirp(path: &PathBuf) -> Result<()> {
     };
 
     res.map_err(Error::io).with_context(|_| Error::path(path))?;
+
+    debug!("mkdirp - path exists: {}", path.exists());
 
     Ok(())
 }

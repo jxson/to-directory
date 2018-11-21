@@ -47,10 +47,15 @@ impl Database {
 
         debug!("opening DB ");
 
-        let file = File::open(&path)
-            .map_err(Error::io)
-            .with_context(|_| Error::path(path.clone()))?;
-        let bookmarks = hydrate(file)?;
+        let mut bookmarks = Bookmarks::new();
+
+        if path.exists() {
+            let file = File::open(&path)
+                .map_err(Error::io)
+                .with_context(|_| Error::path(path.clone()))?;
+            debug!("opened file {:?}", file);
+            bookmarks = hydrate(file)?;
+        }
 
         debug!("DB opened");
 
@@ -154,6 +159,7 @@ impl Database {
 }
 
 fn hydrate(file: File) -> Result<Bookmarks> {
+    debug!("reading from file {:?}", file);
     let mut reader = BufReader::new(file);
     let bookmarks: Bookmarks = deserialize_from(&mut reader, Infinite).map_err(Error::bincode)?;
     Ok(bookmarks)
