@@ -1,6 +1,7 @@
 use clap;
 use dir;
-use errors::{Error, Result};
+use dirs::home_dir;
+use errors::{Error, Result, ResultExt};
 use std;
 use std::env;
 use std::path::PathBuf;
@@ -162,13 +163,15 @@ fn normalize(string: &str) -> String {
 fn config(value: Option<&str>) -> Result<PathBuf> {
     value
         .map(PathBuf::from)
-        .or_else(|| {
-            env::home_dir().map(|mut home| {
-                home.push(".to");
-                home
-            })
-        })
-        .ok_or_else(Error::config)
+        .or_else(default_config)
+        .ok_or_else(|| format_err!("failed to locate config"))
+}
+
+fn default_config() -> Option<PathBuf> {
+    home_dir().map(|mut home| {
+        home.push(".to");
+        home
+    })
 }
 
 #[cfg(test)]

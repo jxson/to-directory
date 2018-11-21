@@ -1,4 +1,4 @@
-use errors::{Error, ErrorKind, Result};
+use errors::{Error, Result};
 use failure::ResultExt;
 use std::env;
 use std::fs;
@@ -50,38 +50,41 @@ pub fn resolve(path: PathBuf) -> Result<PathBuf> {
             p
         })
         .map_err(Error::io)?;
-    // .context("failed to get current dir")?;
 
     let path = path
         .canonicalize()
         .map_err(Error::io)
-        .with_context(|_| ErrorKind::Path(path))?;
+        .with_context(|_| Error::path(path))?;
 
     Ok(path)
 }
 
 pub fn basename(path: &PathBuf) -> Result<String> {
-    match path.file_stem() {
-        None => return Err(Error::path(path)),
-        Some(stem) => {
-            let os_string = stem.to_os_string();
+    let os_string = path
+        .file_stem()
+        .map(|stem| stem.to_os_string())
+        .ok_or_else(|| format_err!("failed to get file stem"))
+        .with_context(|_| Error::path(path))?;
 
-            match os_string.into_string() {
-                Ok(string) => Ok(string),
-                // TODO(): add cause to error.
-                Err(_) => return Err(Error::path(path)),
-            }
-        }
-    }
+    let string = os_string
+        .into_string()
+        .map_err(|og_value| format_err!("failed to convert os string"))
+        .with_context(|_| Error::path(path))?;
+
+    Ok(string)
 }
 
 /// A function that acts like `mkdir -p`.
-pub fn mkdirp(directory: &PathBuf) -> Result<()> {
-    match fs::create_dir_all(&directory) {
-        Ok(_) => Ok(()),
+pub fn mkdirp(path: &PathBuf) -> Result<()> {
+    let res = match fs::create_dir_all(&path) {
+        Ok(v) => Ok(v),
         Err(ref err) if exists(err) => Ok(()),
-        Err(err) => return Err(Error::io(err)),
-    }
+        Err(err) => Err(err),
+    };
+
+    res.map_err(Error::io).with_context(|_| Error::path(path))?;
+
+    Ok(())
 }
 
 fn exists(err: &io::Error) -> bool {

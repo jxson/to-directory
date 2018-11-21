@@ -6,9 +6,9 @@ extern crate serde_derive;
 extern crate time;
 #[macro_use]
 extern crate log;
-extern crate failure;
+extern crate dirs;
 #[macro_use]
-extern crate failure_derive;
+extern crate failure;
 extern crate loggerv;
 
 pub mod cli;

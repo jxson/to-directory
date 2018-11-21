@@ -1,6 +1,5 @@
 use bincode::{deserialize_from, serialize_into, Infinite};
-use errors::{Error, ErrorKind, Result};
-use failure::ResultExt;
+use errors::{Error, ErrorKind, Result, ResultExt};
 use std::collections::btree_map::Iter;
 use std::collections::BTreeMap;
 use std::fs::{File, OpenOptions};
@@ -48,10 +47,12 @@ impl Database {
 
         debug!("opening DB ");
 
-        let bookmarks = File::open(&path)
+        let file = File::open(&path)
             .map_err(Error::io)
-            .and_then(hydrate)
-            .with_context(|_| ErrorKind::Path(path.clone()))?;
+            .with_context(|_| Error::path(path.clone()))?;
+        let bookmarks = hydrate(file)?;
+
+        debug!("DB opened");
 
         Ok(Database::new(path, bookmarks))
     }
@@ -69,15 +70,24 @@ impl Database {
 
     // TODO(): fold get and get_path into one method.
     pub fn get_path(&mut self, key: String) -> Result<PathBuf> {
-        let path: PathBuf;
-        match self.bookmarks.get_mut(&key) {
-            Some(bookmark) => {
-                bookmark.last_access = Some(::now());
-                path = bookmark.directory.clone();
-            }
-            None => return Err(Error::not_found(key)),
-        };
+        // let path: PathBuf;
+        // match self.bookmarks.get_mut(&key) {
+        //     Some(bookmark) => {
+        //         bookmark.last_access = Some(::now());
+        //         path = bookmark.directory.clone();
+        //     }
+        //     None => return Err(Error::not_found(key)),
+        // };
 
+        let path = self
+            .bookmarks
+            .get_mut(&key)
+            .map(|bookmark| {
+                bookmark.last_access = Some(::now());
+                bookmark.directory.clone()
+            })
+            .ok_or_else(|| format_err!("..."))
+            .with_context(|_| Error::not_found(key))?;
         self.close()?;
         Ok(path)
     }
@@ -95,21 +105,23 @@ impl Database {
     pub fn delete(&mut self, key: String) -> Result<()> {
         self.bookmarks
             .remove(&key)
-            .ok_or_else(|| Error::not_found(key))
-            .and_then(|_| self.close())
+            .ok_or_else(|| format_err!("..."))
+            .with_context(|_| Error::not_found(key))?;
+
+        self.close()
     }
 
     fn update(&mut self, key: String, path: PathBuf) -> Result<()> {
-        match self.bookmarks.get_mut(&key) {
-            Some(bookmark) => {
+        self.bookmarks
+            .get_mut(&key)
+            .map(|bookmark| {
                 bookmark.directory = path;
                 bookmark.updated_at = ::now();
-            }
-            None => return Err(Error::not_found(key)),
-        }
+            })
+            .ok_or_else(|| format_err!("..."))
+            .with_context(|_| Error::not_found(key))?;
 
-        try!(self.close());
-        Ok(())
+        self.close()
     }
 
     fn create(&mut self, key: String, value: PathBuf) -> Result<()> {

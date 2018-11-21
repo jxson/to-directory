@@ -12,14 +12,14 @@ use std::path::PathBuf;
 use std::process::exit;
 use to::cli::Action;
 use to::database::Database;
-use to::errors::Result;
-use to::{cli, dir, errors};
+use to::errors::{pretty_error, Error, Result, ResultExt};
+use to::{cli, dir};
 
 fn main() {
     let matches = cli::app().get_matches();
     if let Err(err) = run(matches, &mut stdout()) {
         let stderr = &mut stderr();
-        let message = errors::format_chain(&err);
+        let message = pretty_error(&err);
 
         writeln!(stderr, "command failed: {}", message).expect("failed to write to stderr");
 
@@ -28,18 +28,18 @@ fn main() {
 }
 
 fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
-    let options = try!(cli::Options::new(matches));
-
     // TODO(jxson): see about fixing the name of the log.
     // TODO(jxson): configure logger based on user input.
-    match loggerv::init_with_level(LogLevel::Info) {
+    match loggerv::init_with_level(LogLevel::Debug) {
         Ok(_) => debug!("logger initialized"),
         Err(_) => {} // Ignored due to tests reusing the log singleton.
     }
 
+    let options = cli::Options::new(matches)?;
+
     // --init # echo the shell script for the `to` function.
     if options.initialize {
-        try!(write!(out, "{}", include_str!("to.sh")));
+        write!(out, "{}", include_str!("to.sh")).map_err(Error::io)?;
         return Ok(());
     }
 
@@ -47,10 +47,10 @@ fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
 
     if !config.exists() {
         info!("creating config dir: {:?}", &config);
-        try!(dir::mkdirp(&config));
+        dir::mkdirp(&config)?;
     }
 
-    let mut store = try!(Database::open(config));
+    let mut store = Database::open(config)?;
 
     match options.action {
         Action::Info => info(&store, &options),
@@ -59,7 +59,7 @@ fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
         Action::List => list(&store, out),
         Action::Pathname => {
             let path = try!(store.get_path(options.name));
-            try!(write!(out, "{}", path.to_string_lossy()));
+            write!(out, "{}", path.to_string_lossy());
             Ok(())
         }
     }
@@ -83,7 +83,7 @@ fn list<T: Write + ?Sized>(store: &Database, out: &mut T) -> Result<()> {
         table.add_row(row![name, path, bookmark.count]);
     }
 
-    try!(table.print(out));
+    table.print(out).map_err(Error::io)?;
 
     Ok(())
 }

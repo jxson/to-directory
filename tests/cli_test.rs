@@ -1,6 +1,8 @@
+extern crate dirs;
 extern crate tempdir;
 extern crate to;
 
+use dirs::home_dir;
 use std::env;
 use std::path::PathBuf;
 use tempdir::TempDir;
@@ -15,7 +17,7 @@ fn run(mut args: Vec<&str>) -> cli::Options {
 
 #[test]
 fn cli_defaults() {
-    let config_dir = env::home_dir()
+    let config_dir = home_dir()
         .map(|mut home| {
             home.push(".to");
             home
@@ -112,7 +114,7 @@ fn cli_flag_delete() {
 #[test]
 fn cli_flag_config_default() {
     let options = run(vec![]);
-    let expected = env::home_dir()
+    let expected = home_dir()
         .map(|mut home| {
             home.push(".to");
             home
