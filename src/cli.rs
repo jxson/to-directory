@@ -138,9 +138,11 @@ impl Options {
             .map(normalize)
             .unwrap_or(try!(dir::basename(&path)));
 
+        let config = config(matches.value_of("config"))?;
+
         Ok(Options {
             action: action,
-            config: try!(config(matches.value_of("config"))),
+            config: config,
             path: path,
             initialize: matches.is_present("initialize"),
             name: name,

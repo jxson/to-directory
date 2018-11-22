@@ -45,8 +45,6 @@ impl Database {
             path.push("db");
         }
 
-        debug!("opening DB ");
-
         let mut bookmarks = Bookmarks::new();
 
         if path.exists() {
@@ -56,8 +54,6 @@ impl Database {
             debug!("opened file {:?}", file);
             bookmarks = hydrate(file)?;
         }
-
-        debug!("DB opened");
 
         Ok(Database::new(path, bookmarks))
     }
@@ -75,15 +71,6 @@ impl Database {
 
     // TODO(): fold get and get_path into one method.
     pub fn get_path(&mut self, key: String) -> Result<PathBuf> {
-        // let path: PathBuf;
-        // match self.bookmarks.get_mut(&key) {
-        //     Some(bookmark) => {
-        //         bookmark.last_access = Some(::now());
-        //         path = bookmark.directory.clone();
-        //     }
-        //     None => return Err(Error::not_found(key)),
-        // };
-
         let path = self
             .bookmarks
             .get_mut(&key)
