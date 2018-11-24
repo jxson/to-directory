@@ -1,19 +1,16 @@
-// `error_chain!` recursion limit.
-#![recursion_limit = "1024"]
-
 extern crate bincode;
 #[macro_use]
 extern crate clap;
-#[macro_use]
-extern crate error_chain;
 #[macro_use]
 extern crate serde_derive;
 extern crate time;
 #[macro_use]
 extern crate log;
-extern crate loggerv;
+extern crate dirs;
 #[macro_use]
 extern crate failure;
+extern crate loggerv;
+extern crate mkdirp;
 
 pub mod cli;
 pub mod database;

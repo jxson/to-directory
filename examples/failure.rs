@@ -1,10 +1,20 @@
-use bincode;
-pub use failure::ResultExt;
-use failure::{Context, Fail};
-use std::path::{Path, PathBuf};
-use std::{fmt, io, result};
+extern crate failure;
+extern crate to;
 
-pub type Result<T> = result::Result<T, failure::Error>;
+use failure::{Context, Fail, ResultExt};
+use std::env;
+use std::fmt;
+use std::io;
+use std::path::{Path, PathBuf};
+
+fn main() {
+    let path = PathBuf::from("does-not-exist");
+
+    match resolve(path) {
+        Ok(path) => println!("success: {:?}", path),
+        Err(err) => println!("failure: {}", pretty_error(&err)),
+    }
+}
 
 #[derive(Debug, Fail)]
 pub struct Error {
@@ -12,31 +22,12 @@ pub struct Error {
 }
 
 impl Error {
-    pub fn kind(&self) -> &ErrorKind {
-        self.ctx.get_context()
-    }
-
     pub fn io(err: io::Error) -> Error {
         Error::from(ErrorKind::IO(err.to_string()))
     }
 
     pub fn path<P: AsRef<Path>>(path: P) -> Error {
         let kind = ErrorKind::Path(path.as_ref().to_path_buf());
-        Error::from(kind)
-    }
-
-    pub fn config() -> Error {
-        let kind = ErrorKind::Config;
-        Error::from(kind)
-    }
-
-    pub fn not_found(key: String) -> Error {
-        let kind = ErrorKind::NotFound(key);
-        Error::from(kind)
-    }
-
-    pub fn bincode(err: bincode::Error) -> Error {
-        let kind = ErrorKind::Bincode(err.to_string());
         Error::from(kind)
     }
 }
@@ -63,9 +54,6 @@ impl From<Context<ErrorKind>> for Error {
 pub enum ErrorKind {
     Path(PathBuf),
     IO(String),
-    NotFound(String),
-    Config,
-    Bincode(String),
 }
 
 impl fmt::Display for ErrorKind {
@@ -73,23 +61,37 @@ impl fmt::Display for ErrorKind {
         match *self {
             ErrorKind::Path(ref path) => write!(f, "path: {}", path.display()),
             ErrorKind::IO(ref msg) => write!(f, "IO error: {}", msg),
-            ErrorKind::NotFound(ref bookmark) => write!(f, "bookmark not found: {}", bookmark),
-            ErrorKind::Config => write!(f, "failed to locat config"),
-            ErrorKind::Bincode(ref msg) => write!(f, "bincode error: {}", msg),
         }
     }
 }
 
-pub fn pretty_error(err: &failure::Error) -> String {
-    let mut pretty = format!("\n => {}", err.to_string());
+/// Return a prettily formatted error, including its entire causal chain.
+fn pretty_error(err: &failure::Error) -> String {
+    let mut pretty = err.to_string();
     let mut prev = err.as_fail();
     while let Some(next) = prev.cause() {
-        pretty.push_str("\n => ");
+        pretty.push_str(": ");
         pretty.push_str(&next.to_string());
         prev = next;
     }
 
-    pretty.push_str(&format!("\n\n{}", err.backtrace()));
-
+    pretty.push_str(&format!("{}", err.backtrace()));
     pretty
+}
+
+pub fn resolve(path: PathBuf) -> Result<PathBuf, failure::Error> {
+    let path = env::current_dir()
+        .map(|mut p| {
+            p.push(path.to_path_buf());
+            p
+        })
+        .map_err(Error::io)
+        .context("failed to get current dir")?;
+
+    let path = path
+        .canonicalize()
+        .map_err(Error::io)
+        .with_context(|_| Error::path(path))?;
+
+    Ok(path)
 }
