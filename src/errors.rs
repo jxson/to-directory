@@ -12,21 +12,12 @@ pub struct Error {
 }
 
 impl Error {
-    pub fn kind(&self) -> &ErrorKind {
-        self.ctx.get_context()
-    }
-
     pub fn io(err: io::Error) -> Error {
         Error::from(ErrorKind::IO(err.to_string()))
     }
 
     pub fn path<P: AsRef<Path>>(path: P) -> Error {
         let kind = ErrorKind::Path(path.as_ref().to_path_buf());
-        Error::from(kind)
-    }
-
-    pub fn config() -> Error {
-        let kind = ErrorKind::Config;
         Error::from(kind)
     }
 
@@ -64,7 +55,6 @@ pub enum ErrorKind {
     Path(PathBuf),
     IO(String),
     NotFound(String),
-    Config,
     Bincode(String),
 }
 
@@ -74,7 +64,6 @@ impl fmt::Display for ErrorKind {
             ErrorKind::Path(ref path) => write!(f, "path: {}", path.display()),
             ErrorKind::IO(ref msg) => write!(f, "IO error: {}", msg),
             ErrorKind::NotFound(ref bookmark) => write!(f, "bookmark not found: {}", bookmark),
-            ErrorKind::Config => write!(f, "failed to locat config"),
             ErrorKind::Bincode(ref msg) => write!(f, "bincode error: {}", msg),
         }
     }
