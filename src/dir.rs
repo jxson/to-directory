@@ -1,4 +1,4 @@
-use errors::{Error, Result};
+use crate::errors::{Error, Result};
 use failure::ResultExt;
 use mkdirp::mkdirp as _mkdirp;
 use std::env;

@@ -62,7 +62,7 @@ fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
         Action::Delete => store.delete(options.name),
         Action::List => list(&store, out),
         Action::Pathname => {
-            let path = try!(store.get_path(options.name));
+            let path = store.get_path(options.name)?;
             write!(out, "{}", path.to_string_lossy())?;
             Ok(())
         }

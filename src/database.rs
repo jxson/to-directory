@@ -1,5 +1,5 @@
 use bincode::{deserialize_from, serialize_into, Infinite};
-use errors::{Error, ErrorKind, Result, ResultExt};
+use crate::errors::{Error, ErrorKind, Result, ResultExt};
 use std::collections::btree_map::Iter;
 use std::collections::BTreeMap;
 use std::fs::{File, OpenOptions};
@@ -20,7 +20,7 @@ pub type Bookmarks = BTreeMap<String, Bookmark>;
 
 impl Bookmark {
     pub fn new(name: String, directory: PathBuf) -> Bookmark {
-        let timestamp = ::now();
+        let timestamp = crate::now();
 
         Bookmark {
             name: name,
@@ -75,7 +75,7 @@ impl Database {
             .bookmarks
             .get_mut(&key)
             .map(|bookmark| {
-                bookmark.last_access = Some(::now());
+                bookmark.last_access = Some(crate::now());
                 bookmark.directory.clone()
             })
             .ok_or_else(|| format_err!("..."))
@@ -108,7 +108,7 @@ impl Database {
             .get_mut(&key)
             .map(|bookmark| {
                 bookmark.directory = path;
-                bookmark.updated_at = ::now();
+                bookmark.updated_at = crate::now();
             })
             .ok_or_else(|| format_err!("..."))
             .with_context(|_| Error::not_found(key))?;
@@ -120,7 +120,7 @@ impl Database {
         let bookmark = Bookmark::new(key.clone(), value);
         self.bookmarks.insert(key, bookmark);
 
-        try!(self.close());
+        self.close()?;
         Ok(())
     }
 

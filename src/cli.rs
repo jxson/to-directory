@@ -1,7 +1,7 @@
 use clap;
-use dir;
+use crate::dir;
 use dirs::home_dir;
-use errors::{Error, Result};
+use crate::errors::{Error, Result};
 use std;
 use std::env;
 use std::path::PathBuf;
@@ -129,14 +129,14 @@ impl Options {
 
         let directory = matches.value_of("DIRECTORY").map(PathBuf::from);
         let path = match directory {
-            Some(value) => try!(dir::resolve(value)),
+            Some(value) => dir::resolve(value)?,
             None => env::current_dir().map_err(Error::io)?,
         };
 
         let name = matches
             .value_of("NAME")
             .map(normalize)
-            .unwrap_or(try!(dir::basename(&path)));
+            .unwrap_or(dir::basename(&path)?);
 
         let config = config(matches.value_of("config"))?;
 
@@ -158,7 +158,7 @@ impl Options {
 fn normalize(string: &str) -> String {
     string
         .trim()
-        .trim_right_matches(std::path::MAIN_SEPARATOR)
+        .trim_end_matches(std::path::MAIN_SEPARATOR)
         .to_lowercase()
 }
 
