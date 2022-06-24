@@ -1,4 +1,4 @@
-use bincode::{deserialize_from, serialize_into, Infinite};
+use bincode::{deserialize_from, serialize_into};
 use crate::errors::{Error, ErrorKind, Result, ResultExt};
 use std::collections::btree_map::Iter;
 use std::collections::BTreeMap;
@@ -148,14 +148,14 @@ impl Database {
 fn hydrate(file: File) -> Result<Bookmarks> {
     debug!("reading from file {:?}", file);
     let mut reader = BufReader::new(file);
-    let bookmarks: Bookmarks = deserialize_from(&mut reader, Infinite).map_err(Error::bincode)?;
+    let bookmarks: Bookmarks = deserialize_from(&mut reader).map_err(Error::bincode)?;
     Ok(bookmarks)
 }
 
 fn dehydrate(file: File, bookmarks: &Bookmarks) -> Result<()> {
     let mut writer = BufWriter::new(file);
 
-    serialize_into(&mut writer, &bookmarks, Infinite).map_err(Error::bincode)?;
+    serialize_into(&mut writer, &bookmarks).map_err(Error::bincode)?;
     Ok(())
 }
 

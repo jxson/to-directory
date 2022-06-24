@@ -5,7 +5,7 @@ extern crate log;
 extern crate loggerv;
 extern crate to;
 
-use log::LogLevel;
+use log::Level;
 use prettytable::Table;
 use std::io::{stderr, stdout, Write};
 use std::path::PathBuf;
@@ -32,7 +32,7 @@ fn run<T: Write + ?Sized>(matches: cli::ArgMatches, out: &mut T) -> Result<()> {
     // TODO(jxson): see about fixing the name of the log.
     // TODO(jxson): configure logger based on user input.
     // https://git.io/fp4VU
-    match loggerv::init_with_level(LogLevel::Debug) {
+    match loggerv::init_with_level(Level::Debug) {
         Ok(_) => debug!("logger initialized"),
         Err(_) => {} // Ignored due to tests reusing the log singleton.
     }
